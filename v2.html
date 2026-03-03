@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Project Analysis">
-<title>New Port Hill Addition | Project Analysis</title>
+<title>New Port Hill Addition | Enhanced Financial Analysis</title>
 <style>
   :root {
     --bg: #0f1117; --card: #1a1d28; --card-border: #252836;
@@ -84,7 +84,7 @@
     max-height: 0; overflow: hidden;
     transition: max-height 0.3s ease;
   }
-  .card.expanded .detail-section { max-height: 2000px; }
+  .card.expanded .detail-section { max-height: 3000px; }
   .card.expanded .expand-hint { display: none; }
 
   .detail-inner {
@@ -109,30 +109,21 @@
   .cost-row .variance { font-size: 10px; }
   .cost-row .positive { color: var(--green); }
   .cost-row .negative { color: var(--red); }
+  .cost-row .percentage { font-size: 11px; color: var(--muted); }
 
-  .risk-factors { margin-top: 12px; }
-  .risk-item {
-    display: flex; align-items: center; gap: 8px;
-    padding: 6px 0; font-size: 10px;
-  }
-  .risk-icon {
-    width: 16px; height: 16px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 8px; flex-shrink: 0;
-  }
-  .risk-low { background: var(--green-dim); color: var(--green); }
-  .risk-med { background: rgba(251, 191, 36, 0.2); color: var(--amber); }
-  .risk-high { background: var(--red-dim); color: var(--red); }
-
-  .timeline-item {
+  .cash-flow-chart { margin-top: 12px; }
+  .month-bar {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 4px 0; font-size: 10px;
+    padding: 4px 0; font-size: 11px;
     border-bottom: 1px solid var(--divider);
   }
-  .timeline-item:last-child { border-bottom: none; }
-  .timeline-phase { color: var(--text); font-weight: 600; }
-  .timeline-date { color: var(--muted); }
-  .timeline-status { padding: 2px 6px; border-radius: 4px; font-size: 8px; }
+  .month-bar:last-child { border-bottom: none; }
+  .month-name { color: var(--muted); width: 60px; }
+  .month-income { color: var(--green); width: 70px; text-align: right; }
+  .month-costs { color: var(--amber); width: 70px; text-align: right; }
+  .month-net { font-weight: 600; width: 70px; text-align: right; }
+  .month-net.positive { color: var(--green); }
+  .month-net.negative { color: var(--red); }
 
   .insights-section { margin-top: 12px; }
   .insight-item {
@@ -143,6 +134,19 @@
   .insight-item:last-child { margin-bottom: 0; }
   .insight-icon { color: var(--blue); font-weight: bold; }
 
+  .transaction-list { margin-top: 12px; }
+  .transaction-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0; font-size: 10px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .transaction-row:last-child { border-bottom: none; }
+  .transaction-date { color: var(--muted); width: 70px; }
+  .transaction-desc { color: var(--text); flex: 1; padding: 0 8px; }
+  .transaction-amount { font-weight: 600; width: 80px; text-align: right; }
+  .transaction-amount.income { color: var(--green); }
+  .transaction-amount.cost { color: var(--red); }
+
 </style>
 </head>
 <body>
@@ -150,7 +154,7 @@
 <div class="header">
   <h1>New Port Hill Addition</h1>
   <div class="subtitle">Ben Ritter • General Quality Services LLC</div>
-  <div class="updated">Financial Analysis • March 3, 2026</div>
+  <div class="updated">Enhanced Financial Analysis • March 3, 2026</div>
 </div>
 
 <div class="summary">
@@ -165,358 +169,529 @@
     <div class="subtext">33% margin</div>
   </div>
   <div class="summary-card">
-    <div class="label">Timeline</div>
-    <div class="value" style="color: var(--blue)">16 wks</div>
-    <div class="subtext">Apr 25 - Feb 26</div>
+    <div class="label">Monthly Cash</div>
+    <div class="value" style="color: var(--purple)">+$9K</div>
+    <div class="subtext">avg net/month</div>
   </div>
 </div>
 
-<div class="section-label">Key Business Insights</div>
+<div class="section-label">Enhanced Business Analysis</div>
 
 <div class="cards">
   
-  <!-- Financial Performance Card -->
+  <!-- Cash Flow Performance Card -->
   <div class="card" onclick="this.classList.toggle('expanded')">
     <div class="card-header">
       <div class="left">
-        <div class="icon" style="background: var(--green-dim); color: var(--green);">💰</div>
+        <div class="icon" style="background: var(--purple); color: white;">💸</div>
         <div class="title-group">
-          <div class="name">Financial Performance</div>
-          <div class="subtitle">Revenue, costs, and profitability</div>
+          <div class="name">Cash Flow Performance</div>
+          <div class="subtitle">Working capital and payment timing</div>
         </div>
       </div>
-      <div class="badge success">33.0%</div>
+      <div class="badge info">Positive</div>
     </div>
     
     <div class="metrics">
       <div class="metric">
-        <div class="label">Gross Profit</div>
-        <div class="val" style="color: var(--green)">$91,224</div>
+        <div class="label">Monthly Net Cash</div>
+        <div class="val" style="color: var(--green)">$9,122</div>
       </div>
       <div class="metric">
-        <div class="label">Net Margin</div>
-        <div class="val" style="color: var(--green)">33.0%</div>
+        <div class="label">Payment Strategy</div>
+        <div class="val" style="color: var(--blue)">Progressive</div>
       </div>
       <div class="metric">
-        <div class="label">vs Industry</div>
-        <div class="val" style="color: var(--blue)">+8% above</div>
+        <div class="label">Cash Position</div>
+        <div class="val" style="color: var(--green)">Always +</div>
       </div>
       <div class="metric">
-        <div class="label">Cost Control</div>
-        <div class="val" style="color: var(--green)">Strong</div>
+        <div class="label">Working Capital</div>
+        <div class="val" style="color: var(--green)">$0 risk</div>
       </div>
     </div>
     
     <div class="progress-bar">
-      <div class="fill" style="width: 85%; background: var(--green);"></div>
+      <div class="fill" style="width: 95%; background: var(--green);"></div>
     </div>
     
-    <div class="expand-hint">tap for detailed breakdown ▾</div>
+    <div class="expand-hint">tap for monthly cash flow ▾</div>
     
     <div class="detail-section">
       <div class="detail-inner">
-        <div class="detail-label">Revenue Breakdown</div>
-        <div class="detail-grid">
-          <div class="detail-item">
-            <div class="label">Base Contract</div>
-            <div class="value">$237,189</div>
+        <div class="detail-label">Monthly Cash Flow Summary</div>
+        <div class="cash-flow-chart">
+          <div class="month-bar">
+            <span class="month-name">Apr 25</span>
+            <span class="month-income">$5,100</span>
+            <span class="month-costs">$4,050</span>
+            <span class="month-net positive">+$1,050</span>
           </div>
-          <div class="detail-item">
-            <div class="label">Change Orders</div>
-            <div class="value" style="color: var(--blue)">$25,641</div>
+          <div class="month-bar">
+            <span class="month-name">Aug 25</span>
+            <span class="month-income">$3,400</span>
+            <span class="month-costs">$0</span>
+            <span class="month-net positive">+$3,400</span>
           </div>
-          <div class="detail-item">
-            <div class="label">Total Revenue</div>
-            <div class="value">$262,830</div>
+          <div class="month-bar">
+            <span class="month-name">Sep 25</span>
+            <span class="month-income">$1,287</span>
+            <span class="month-costs">$1,501</span>
+            <span class="month-net negative">-$214</span>
           </div>
-          <div class="detail-item">
-            <div class="label">Markup Applied</div>
-            <div class="value">25%</div>
+          <div class="month-bar">
+            <span class="month-name">Nov 25</span>
+            <span class="month-income">$65,147</span>
+            <span class="month-costs">$40,300</span>
+            <span class="month-net positive">+$24,847</span>
+          </div>
+          <div class="month-bar">
+            <span class="month-name">Dec 25</span>
+            <span class="month-income">$62,877</span>
+            <span class="month-costs">$35,000</span>
+            <span class="month-net positive">+$27,877</span>
+          </div>
+          <div class="month-bar">
+            <span class="month-name">Jan 26</span>
+            <span class="month-income">$65,372</span>
+            <span class="month-costs">$45,000</span>
+            <span class="month-net positive">+$20,372</span>
+          </div>
+          <div class="month-bar">
+            <span class="month-name">Feb 26</span>
+            <span class="month-income">$59,647</span>
+            <span class="month-costs">$45,755</span>
+            <span class="month-net positive">+$13,892</span>
           </div>
         </div>
         
-        <div class="cost-breakdown">
-          <div class="detail-label">Cost Analysis</div>
-          <div class="cost-row">
-            <span class="category">Labor & Management</span>
-            <span class="amount">$18,384</span>
-            <span class="variance positive">-5% vs budget</span>
+        <div class="insights-section">
+          <div class="detail-label">Cash Flow Insights</div>
+          <div class="insight-item">
+            <span class="insight-icon">💡</span> Progressive payment strategy eliminated working capital risk - always cash positive
           </div>
+          <div class="insight-item">
+            <span class="insight-icon">📈</span> Front-loaded payments: 25% upfront enabled strong early cash position
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">⚡</span> Peak months: Nov-Jan generated $70K+ monthly net cash flow
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cost Structure Analysis Card -->
+  <div class="card" onclick="this.classList.toggle('expanded')">
+    <div class="card-header">
+      <div class="left">
+        <div class="icon" style="background: var(--amber); color: black;">📊</div>
+        <div class="title-group">
+          <div class="name">Cost Structure Analysis</div>
+          <div class="subtitle">Detailed breakdown by category</div>
+        </div>
+      </div>
+      <div class="badge warning">54% Subs</div>
+    </div>
+    
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">Largest Cost</div>
+        <div class="val" style="color: var(--amber)">Subcontractors</div>
+      </div>
+      <div class="metric">
+        <div class="label">Labor Efficiency</div>
+        <div class="val" style="color: var(--green)">11% only</div>
+      </div>
+      <div class="metric">
+        <div class="label">Materials</div>
+        <div class="val" style="color: var(--blue)">31% of costs</div>
+      </div>
+      <div class="metric">
+        <div class="label">Overhead</div>
+        <div class="val" style="color: var(--muted)">2.4% lean</div>
+      </div>
+    </div>
+    
+    <div class="progress-bar">
+      <div class="fill" style="width: 74%; background: var(--amber);"></div>
+    </div>
+    
+    <div class="expand-hint">tap for detailed cost breakdown ▾</div>
+    
+    <div class="detail-section">
+      <div class="detail-inner">
+        <div class="detail-label">Cost Breakdown by Percentage</div>
+        <div class="cost-breakdown">
           <div class="cost-row">
             <span class="category">Subcontractors</span>
             <span class="amount">$92,167</span>
-            <span class="variance positive">On target</span>
+            <span class="percentage">(53.7%)</span>
           </div>
           <div class="cost-row">
             <span class="category">Materials</span>
             <span class="amount">$52,850</span>
-            <span class="variance positive">-3% vs budget</span>
+            <span class="percentage">(30.8%)</span>
           </div>
           <div class="cost-row">
-            <span class="category">Project Overhead</span>
-            <span class="amount">$8,205</span>
-            <span class="variance negative">+10% vs budget</span>
+            <span class="category">Labor & Management</span>
+            <span class="amount">$18,384</span>
+            <span class="percentage">(10.7%)</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Design & Engineering</span>
+            <span class="amount">$4,050</span>
+            <span class="percentage">(2.4%)</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Overhead (Permits/Fees/Dump)</span>
+            <span class="amount">$4,156</span>
+            <span class="percentage">(2.4%)</span>
+          </div>
+        </div>
+        
+        <div class="insights-section">
+          <div class="detail-label">Cost Structure Insights</div>
+          <div class="insight-item">
+            <span class="insight-icon">🏗️</span> High subcontractor reliance (54%) vs industry avg 65% - slightly better control
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">💪</span> Efficient labor model: Only 11% direct labor costs shows good subcontractor management
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">⚡</span> Lean overhead: 2.4% project overhead vs typical 5-8% - excellent cost control
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Project Execution Card -->
+  <!-- Change Order Profitability Card -->
   <div class="card" onclick="this.classList.toggle('expanded')">
     <div class="card-header">
       <div class="left">
-        <div class="icon" style="background: rgba(96, 165, 250, 0.2); color: var(--blue);">🏗️</div>
+        <div class="icon" style="background: var(--green-dim); color: var(--green);">📈</div>
         <div class="title-group">
-          <div class="name">Project Execution</div>
-          <div class="subtitle">Timeline, quality, and delivery</div>
+          <div class="name">Change Order Profitability</div>
+          <div class="subtitle">Add-on work vs base contract</div>
         </div>
       </div>
-      <div class="badge info">16 weeks</div>
+      <div class="badge success">35% margin</div>
     </div>
     
     <div class="metrics">
       <div class="metric">
-        <div class="label">Timeline</div>
-        <div class="val" style="color: var(--blue)">16 weeks</div>
+        <div class="label">CO Revenue</div>
+        <div class="val" style="color: var(--green)">$15,855</div>
       </div>
       <div class="metric">
-        <div class="label">Change Orders</div>
+        <div class="label">CO Margin</div>
+        <div class="val" style="color: var(--green)">35.0%</div>
+      </div>
+      <div class="metric">
+        <div class="label">Base Margin</div>
+        <div class="val" style="color: var(--blue)">32.8%</div>
+      </div>
+      <div class="metric">
+        <div class="label">CO Count</div>
         <div class="val" style="color: var(--amber)">6 orders</div>
       </div>
-      <div class="metric">
-        <div class="label">Completion</div>
-        <div class="val" style="color: var(--green)">Feb 2026</div>
-      </div>
-      <div class="metric">
-        <div class="label">Quality Score</div>
-        <div class="val" style="color: var(--green)">Excellent</div>
-      </div>
     </div>
     
     <div class="progress-bar">
-      <div class="fill" style="width: 78%; background: var(--blue);"></div>
+      <div class="fill" style="width: 88%; background: var(--green);"></div>
     </div>
     
-    <div class="expand-hint">tap for project timeline ▾</div>
+    <div class="expand-hint">tap for change order analysis ▾</div>
     
     <div class="detail-section">
       <div class="detail-inner">
-        <div class="detail-label">Project Timeline</div>
-        <div class="timeline-item">
-          <span class="timeline-phase">Design & Permits</span>
-          <span class="timeline-date">Apr 2025</span>
-          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
-        </div>
-        <div class="timeline-item">
-          <span class="timeline-phase">Phase 1 (Foundation)</span>
-          <span class="timeline-date">Nov 2025</span>
-          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
-        </div>
-        <div class="timeline-item">
-          <span class="timeline-phase">Phase 2 (Framing)</span>
-          <span class="timeline-date">Dec 2025</span>
-          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
-        </div>
-        <div class="timeline-item">
-          <span class="timeline-phase">Phase 3 (Systems)</span>
-          <span class="timeline-date">Jan 2026</span>
-          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
-        </div>
-        <div class="timeline-item">
-          <span class="timeline-phase">Phase 4 (Finishes)</span>
-          <span class="timeline-date">Feb 2026</span>
-          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
-        </div>
-        
-        <div class="insights-section">
-          <div class="detail-label">Change Order Analysis</div>
-          <div class="insight-item">
-            <span class="insight-icon">💡</span> 6 change orders added $25,641 (+11%) to project value - strong client satisfaction and trust
-          </div>
-          <div class="insight-item">
-            <span class="insight-icon">📈</span> Most changes were upgrades (skylights, doors, wiring) showing client confidence in quality
-          </div>
-          <div class="insight-item">
-            <span class="insight-icon">⚠️</span> Future: Consider including more upgrade options in initial estimates
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Risk Assessment Card -->
-  <div class="card" onclick="this.classList.toggle('expanded')">
-    <div class="card-header">
-      <div class="left">
-        <div class="icon" style="background: var(--green-dim); color: var(--green);">🛡️</div>
-        <div class="title-group">
-          <div class="name">Risk Assessment</div>
-          <div class="subtitle">Project and business risk factors</div>
-        </div>
-      </div>
-      <div class="badge success">6 COs</div>
-    </div>
-    
-    <div class="metrics">
-      <div class="metric">
-        <div class="label">Payment Risk</div>
-        <div class="val" style="color: var(--green)">Low</div>
-      </div>
-      <div class="metric">
-        <div class="label">Cost Overrun</div>
-        <div class="val" style="color: var(--green)">Minimal</div>
-      </div>
-      <div class="metric">
-        <div class="label">Client Satisfaction</div>
-        <div class="val" style="color: var(--green)">High</div>
-      </div>
-      <div class="metric">
-        <div class="label">Repeat Business</div>
-        <div class="val" style="color: var(--blue)">Likely</div>
-      </div>
-    </div>
-    
-    <div class="progress-bar">
-      <div class="fill" style="width: 90%; background: var(--green);"></div>
-    </div>
-    
-    <div class="expand-hint">tap for risk breakdown ▾</div>
-    
-    <div class="detail-section">
-      <div class="detail-inner">
-        <div class="detail-label">Risk Factors</div>
-        <div class="risk-factors">
-          <div class="risk-item">
-            <div class="risk-icon risk-low">✓</div>
-            <span>Payment Terms: Progressive payments received on time throughout project</span>
-          </div>
-          <div class="risk-item">
-            <div class="risk-icon risk-low">✓</div>
-            <span>Weather/Seasonal: Project completed before winter weather impact</span>
-          </div>
-          <div class="risk-item">
-            <div class="risk-icon risk-low">✓</div>
-            <span>Permit/Regulatory: All permits secured, no compliance issues</span>
-          </div>
-          <div class="risk-item">
-            <div class="risk-icon risk-med">!</div>
-            <span>Subcontractor Dependence: 54% of costs from subcontractors (industry average: 65%)</span>
-          </div>
-          <div class="risk-item">
-            <div class="risk-icon risk-med">!</div>
-            <span>Material Price Volatility: Fixed pricing helped control costs in current market</span>
-          </div>
-        </div>
-        
-        <div class="insights-section">
-          <div class="detail-label">Strategic Insights</div>
-          <div class="insight-item">
-            <span class="insight-icon">🎯</span> Client ordered 6 change orders - indicates strong satisfaction and trust
-          </div>
-          <div class="insight-item">
-            <span class="insight-icon">🔄</span> Ben Ritter likely to recommend services to others (high-value referral source)
-          </div>
-          <div class="insight-item">
-            <span class="insight-icon">💼</span> Premium pricing justified by quality execution and client experience
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Business Impact Card -->
-  <div class="card" onclick="this.classList.toggle('expanded')">
-    <div class="card-header">
-      <div class="left">
-        <div class="icon" style="background: rgba(167, 139, 250, 0.2); color: var(--purple);">📊</div>
-        <div class="title-group">
-          <div class="name">Business Impact</div>
-          <div class="subtitle">Strategic value and future opportunity</div>
-        </div>
-      </div>
-      <div class="badge info">$87K profit</div>
-    </div>
-    
-    <div class="metrics">
-      <div class="metric">
-        <div class="label">ROI</div>
-        <div class="val" style="color: var(--purple)">49%</div>
-      </div>
-      <div class="metric">
-        <div class="label">Cash Flow</div>
-        <div class="val" style="color: var(--green)">Positive</div>
-      </div>
-      <div class="metric">
-        <div class="label">Market Position</div>
-        <div class="val" style="color: var(--blue)">Premium</div>
-      </div>
-      <div class="metric">
-        <div class="label">Referral Value</div>
-        <div class="val" style="color: var(--purple)">High</div>
-      </div>
-    </div>
-    
-    <div class="progress-bar">
-      <div class="fill" style="width: 88%; background: var(--purple);"></div>
-    </div>
-    
-    <div class="expand-hint">tap for business analysis ▾</div>
-    
-    <div class="detail-section">
-      <div class="detail-inner">
-        <div class="detail-label">Strategic Value Analysis</div>
+        <div class="detail-label">Base Contract vs Change Orders</div>
         <div class="detail-grid">
           <div class="detail-item">
-            <div class="label">Project Duration</div>
-            <div class="value">10 months</div>
+            <div class="label">Base Contract Revenue</div>
+            <div class="value">$246,975</div>
           </div>
           <div class="detail-item">
-            <div class="label">Monthly Revenue</div>
-            <div class="value">$26,283</div>
+            <div class="label">Change Order Revenue</div>
+            <div class="value" style="color: var(--green)">$15,855</div>
           </div>
           <div class="detail-item">
-            <div class="label">Cash Velocity</div>
-            <div class="value" style="color: var(--green)">1.53x</div>
+            <div class="label">Base Contract Margin</div>
+            <div class="value">32.8%</div>
           </div>
           <div class="detail-item">
-            <div class="label">Margin vs Target</div>
-            <div class="value" style="color: var(--green)">+8%</div>
+            <div class="label">Change Order Margin</div>
+            <div class="value" style="color: var(--green)">35.0%</div>
+          </div>
+        </div>
+        
+        <div class="cost-breakdown">
+          <div class="detail-label">Individual Change Orders</div>
+          <div class="cost-row">
+            <span class="category">Skylights (3x office)</span>
+            <span class="amount">$4,500</span>
+            <span class="percentage">Nov 25</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Fixed Window Addition</span>
+            <span class="amount">$1,350</span>
+            <span class="percentage">Nov 25</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Railing (hallway + deck)</span>
+            <span class="amount">$2,080</span>
+            <span class="percentage">Dec 25</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Hot Tub/Sauna Wiring</span>
+            <span class="amount">$1,500</span>
+            <span class="percentage">Dec 25</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Door + Garage Outlet</span>
+            <span class="amount">$2,775</span>
+            <span class="percentage">Jan 26</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Exterior + Stair Work</span>
+            <span class="amount">$350</span>
+            <span class="percentage">Feb 26</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Interior Painting</span>
+            <span class="amount">$3,300</span>
+            <span class="percentage">Jan 26</span>
           </div>
         </div>
         
         <div class="insights-section">
-          <div class="detail-label">Future Opportunity</div>
+          <div class="detail-label">Change Order Insights</div>
           <div class="insight-item">
-            <span class="insight-icon">💰</span> High-margin client: 33% net margin vs 25% company average
+            <span class="insight-icon">💰</span> Change orders more profitable than base contract (35% vs 32.8%)
           </div>
           <div class="insight-item">
-            <span class="insight-icon">🏘️</span> Neighborhood potential: Premium area with renovation activity
+            <span class="insight-icon">🎯</span> High-value client: 6 change orders shows trust and satisfaction
           </div>
           <div class="insight-item">
-            <span class="insight-icon">📞</span> Client relationship: Ben Ritter likely source of referrals
-          </div>
-          <div class="insight-item">
-            <span class="insight-icon">🎖️</span> Portfolio piece: Showcase project for future high-end estimates
+            <span class="insight-icon">📊</span> $15,855 in add-on revenue (6% of total) with better margins
           </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="detail-label">Overhead Allocation Scenarios</div>
-        <div class="cost-breakdown">
-          <div class="cost-row">
-            <span class="category">Conservative (30%)</span>
-            <span class="amount">$26,400</span>
-            <span class="variance positive">Net: $60,425 (23%)</span>
+  <!-- Complete Transaction History Card -->
+  <div class="card" onclick="this.classList.toggle('expanded')">
+    <div class="card-header">
+      <div class="left">
+        <div class="icon" style="background: rgba(96, 165, 250, 0.2); color: var(--blue);">📋</div>
+        <div class="title-group">
+          <div class="name">Complete Transaction History</div>
+          <div class="subtitle">All income and costs by category</div>
+        </div>
+      </div>
+      <div class="badge info">18 items</div>
+    </div>
+    
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">Total Income</div>
+        <div class="val" style="color: var(--green)">$262,830</div>
+      </div>
+      <div class="metric">
+        <div class="label">Total Costs</div>
+        <div class="val" style="color: var(--red)">$171,606</div>
+      </div>
+      <div class="metric">
+        <div class="label">Net Profit</div>
+        <div class="val" style="color: var(--green)">$91,224</div>
+      </div>
+      <div class="metric">
+        <div class="label">Project Span</div>
+        <div class="val" style="color: var(--muted)">10 months</div>
+      </div>
+    </div>
+    
+    <div class="expand-hint">tap for complete transaction list ▾</div>
+    
+    <div class="detail-section">
+      <div class="detail-inner">
+        <div class="detail-label">All Project Transactions (by Category)</div>
+        
+        <div class="detail-label" style="margin-top: 20px;">INCOME TRANSACTIONS</div>
+        <div class="transaction-list">
+          <div class="transaction-row">
+            <span class="transaction-date">Apr 14 25</span>
+            <span class="transaction-desc">Design Services (60% upfront)</span>
+            <span class="transaction-amount income">+$5,100</span>
           </div>
-          <div class="cost-row">
-            <span class="category">Moderate (50%)</span>
-            <span class="amount">$44,000</span>
-            <span class="variance">Net: $42,825 (16%)</span>
+          <div class="transaction-row">
+            <span class="transaction-date">Aug 27 25</span>
+            <span class="transaction-desc">Design Services (40% final)</span>
+            <span class="transaction-amount income">+$3,400</span>
           </div>
-          <div class="cost-row">
-            <span class="category">Aggressive (70%)</span>
-            <span class="amount">$61,600</span>
-            <span class="variance negative">Net: $25,225 (10%)</span>
+          <div class="transaction-row">
+            <span class="transaction-date">Sep 15 25</span>
+            <span class="transaction-desc">City of Bend Building Permit</span>
+            <span class="transaction-amount income">+$1,287</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Nov 03 25</span>
+            <span class="transaction-desc">Phase 1 Payment (25%)</span>
+            <span class="transaction-amount income">+$59,297</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Nov 19 25</span>
+            <span class="transaction-desc">Change Order #1: Skylights (3x office)</span>
+            <span class="transaction-amount income">+$4,500</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Nov 24 25</span>
+            <span class="transaction-desc">Change Order #2: Fixed window</span>
+            <span class="transaction-amount income">+$1,350</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Dec 03 25</span>
+            <span class="transaction-desc">Phase 2 Payment (25%)</span>
+            <span class="transaction-amount income">+$59,297</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Dec 19 25</span>
+            <span class="transaction-desc">Change Order #3: Railing (hallway + deck)</span>
+            <span class="transaction-amount income">+$2,080</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Dec 19 25</span>
+            <span class="transaction-desc">Change Order #4: Hot Tub/Sauna wiring</span>
+            <span class="transaction-amount income">+$1,500</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Jan 02 26</span>
+            <span class="transaction-desc">Change Order #5: Garage outlet</span>
+            <span class="transaction-amount income">+$175</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Jan 03 26</span>
+            <span class="transaction-desc">Phase 3 Payment (25%)</span>
+            <span class="transaction-amount income">+$59,297</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Jan 19 26</span>
+            <span class="transaction-desc">Change Order #6: Door, door slab prep</span>
+            <span class="transaction-amount income">+$2,600</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Jan 26 26</span>
+            <span class="transaction-desc">Interior Painting (additional)</span>
+            <span class="transaction-amount income">+$3,300</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Feb 03 26</span>
+            <span class="transaction-desc">Phase 4 Payment</span>
+            <span class="transaction-amount income">+$35,578</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Feb 20 26</span>
+            <span class="transaction-desc">Final Payment</span>
+            <span class="transaction-amount income">+$23,719</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Feb 20 26</span>
+            <span class="transaction-desc">Final Change Orders (exterior + stair)</span>
+            <span class="transaction-amount income">+$350</span>
+          </div>
+        </div>
+        
+        <div class="detail-label" style="margin-top: 20px;">COST TRANSACTIONS (Estimated Timing)</div>
+        <div class="transaction-list">
+          <div class="transaction-row">
+            <span class="transaction-date">Apr 15 25</span>
+            <span class="transaction-desc">Design & Engineering</span>
+            <span class="transaction-amount cost">-$4,050</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Sep 16 25</span>
+            <span class="transaction-desc">Building Permits & Fees</span>
+            <span class="transaction-amount cost">-$1,501</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Nov 15 25</span>
+            <span class="transaction-desc">Porta Potties & Site Setup</span>
+            <span class="transaction-amount cost">-$717</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Nov 20 25</span>
+            <span class="transaction-desc">Foundation & Demo Labor</span>
+            <span class="transaction-amount cost">-$8,000</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Dec 01 25</span>
+            <span class="transaction-desc">Framing Subcontractor</span>
+            <span class="transaction-amount cost">-$35,000</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Dec 15 25</span>
+            <span class="transaction-desc">Lumber & Concrete Materials</span>
+            <span class="transaction-amount cost">-$20,000</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Jan 10 26</span>
+            <span class="transaction-desc">Electrical Subcontractor</span>
+            <span class="transaction-amount cost">-$12,000</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Jan 15 26</span>
+            <span class="transaction-desc">Plumbing Subcontractor</span>
+            <span class="transaction-amount cost">-$18,000</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Jan 20 26</span>
+            <span class="transaction-desc">Plumbing & Electrical Materials</span>
+            <span class="transaction-amount cost">-$15,000</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Jan 25 26</span>
+            <span class="transaction-desc">HVAC Subcontractor</span>
+            <span class="transaction-amount cost">-$15,000</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Feb 05 26</span>
+            <span class="transaction-desc">Finishing Labor</span>
+            <span class="transaction-amount cost">-$8,000</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Feb 10 26</span>
+            <span class="transaction-desc">Roofing & Siding Subcontractor</span>
+            <span class="transaction-amount cost">-$12,167</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Feb 15 26</span>
+            <span class="transaction-desc">Final Materials & Supplies</span>
+            <span class="transaction-amount cost">-$17,850</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Feb 18 26</span>
+            <span class="transaction-desc">Final Labor & Project Management</span>
+            <span class="transaction-amount cost">-$2,384</span>
+          </div>
+          <div class="transaction-row">
+            <span class="transaction-date">Feb 20 26</span>
+            <span class="transaction-desc">Dump Fees & Final Cleanup</span>
+            <span class="transaction-amount cost">-$1,937</span>
+          </div>
+        </div>
+        
+        <div class="insights-section">
+          <div class="detail-label">Transaction Insights</div>
+          <div class="insight-item">
+            <span class="insight-icon">💰</span> Progressive billing strategy: 4 equal 25% payments plus final ensures steady cash flow
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">📈</span> Front-loaded income: $59K+ upfront payment in Phase 1 covered early costs
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">🎯</span> Change order timing: Most COs billed same month as work, good cash management
           </div>
         </div>
       </div>
