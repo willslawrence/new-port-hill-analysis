@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>New Port Hill Addition — Financial Dashboard V3</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0B0F1A;
+  color: #E2E8F0;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  padding: 24px;
+}
+.mono { font-family: 'JetBrains Mono', monospace; }
+.green { color: #10B981; }
+.red { color: #EF4444; }
+.blue { color: #3B82F6; }
+.purple { color: #8B5CF6; }
+.yellow { color: #F59E0B; }
+.gray { color: #64748B; }
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.header-left {}
+.header-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #3B82F6;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.header-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #F8FAFC;
+}
+.header-sub {
+  font-size: 13px;
+  color: #64748B;
+  margin-top: 4px;
+}
+.download-btn {
+  background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.download-btn:hover { opacity: 0.85; }
+
+/* Tabs */
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+  background: #111827;
+  padding: 4px;
+  border-radius: 12px;
+  width: fit-content;
+}
+.tab-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #94A3B8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: #fff;
+  font-weight: 600;
+}
+.tab-btn:hover:not(.active) { color: #E2E8F0; }
+
+/* Cards */
+.card {
+  background: linear-gradient(145deg, #111827, #1E293B);
+  border: 1px solid #1E293B;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: linear-gradient(145deg, #111827, #1E293B);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.kpi-card.kpi-blue::before { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+.kpi-card.kpi-purple::before { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+.kpi-card.kpi-green::before { background: linear-gradient(90deg, #10B981, #34D399); }
+.kpi-card.kpi-yellow::before { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+.kpi-icon { font-size: 24px; margin-bottom: 8px; }
+.kpi-label { font-size: 12px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.kpi-value { font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 700; color: #F8FAFC; }
+.kpi-sub { font-size: 12px; color: #64748B; margin-top: 4px; }
+
+/* Tab content */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Chart */
+.chart-container { margin-bottom: 24px; }
+.chart-bar-group {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+.chart-label {
+  width: 180px;
+  font-size: 12px;
+  color: #94A3B8;
+  text-align: right;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chart-bars {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.chart-bar {
+  height: 14px;
+  border-radius: 4px;
+  position: relative;
+  min-width: 2px;
+  transition: width 0.6s ease;
+}
+.chart-bar.est { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
+.chart-bar.actual { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+.chart-bar.pending { background: repeating-linear-gradient(45deg, #374151, #374151 4px, #4B5563 4px, #4B5563 8px); }
+.chart-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #94A3B8;
+  width: 80px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.chart-legend {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 16px;
+  padding-left: 192px;
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #94A3B8; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* Sub performance */
+.sub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.sub-card {
+  background: linear-gradient(145deg, #111827, #1E293B);
+  border: 1px solid #1E293B;
+  border-radius: 12px;
+  padding: 16px;
+}
+.sub-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.sub-card-name { font-size: 14px; font-weight: 600; color: #F8FAFC; }
+.sub-card-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.sub-card-badge.under { background: rgba(16,185,129,0.15); color: #10B981; }
+.sub-card-badge.over { background: rgba(239,68,68,0.15); color: #EF4444; }
+.sub-card-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.sub-card-row span:first-child { color: #94A3B8; }
+.sub-card-row span:last-child { font-family: 'JetBrains Mono', monospace; color: #E2E8F0; }
+.sub-progress-bar {
+  height: 6px;
+  background: #1E293B;
+  border-radius: 3px;
+  margin-top: 8px;
+  overflow: hidden;
+}
+.sub-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+/* Cost table */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #1E293B;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+thead th {
+  background: #111827;
+  color: #94A3B8;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 12px 16px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  border-bottom: 1px solid #1E293B;
+}
+thead th:not(:first-child) { text-align: right; }
+tbody td {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(30,41,59,0.5);
+}
+tbody td:not(:first-child) {
+  text-align: right;
+  font-family: 'JetBrains Mono', monospace;
+}
+tbody tr:nth-child(even) { background: rgba(17,24,39,0.5); }
+tbody tr:nth-child(odd) { background: rgba(30,41,59,0.2); }
+tbody tr:hover { background: rgba(59,130,246,0.08); }
+tbody tr.totals-row {
+  background: #111827 !important;
+  font-weight: 700;
+  border-top: 2px solid #3B82F6;
+}
+.variance-chip {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+.variance-chip.under { background: rgba(16,185,129,0.15); color: #10B981; }
+.variance-chip.over { background: rgba(239,68,68,0.15); color: #EF4444; }
+.variance-chip.neutral { background: rgba(100,116,139,0.2); color: #94A3B8; }
+.pending-text { color: #64748B; font-style: italic; }
+
+/* Sqft section */
+.sqft-input-area {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: linear-gradient(145deg, #111827, #1E293B);
+  border: 1px dashed #3B82F6;
+  border-radius: 12px;
+}
+.sqft-input-area label {
+  display: block;
+  font-size: 14px;
+  color: #94A3B8;
+  margin-bottom: 8px;
+}
+.sqft-input {
+  background: #0B0F1A;
+  border: 1px solid #374151;
+  color: #F8FAFC;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  width: 200px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.sqft-input:focus { border-color: #3B82F6; }
+.sqft-input::placeholder { color: #4B5563; }
+.sqft-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.sqft-card {
+  background: linear-gradient(145deg, #111827, #1E293B);
+  border: 1px solid #1E293B;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.sqft-card-name { font-size: 13px; color: #94A3B8; margin-bottom: 8px; }
+.sqft-card-value { font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 700; color: #F8FAFC; }
+.sqft-card-sub { font-size: 11px; color: #64748B; margin-top: 4px; }
+
+/* Overhead section */
+.overhead-scenarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.scenario-card {
+  background: linear-gradient(145deg, #111827, #1E293B);
+  border: 1px solid #1E293B;
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.scenario-card.recommended { border-color: #3B82F6; }
+.scenario-badge {
+  position: absolute;
+  top: -10px;
+  right: 16px;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.scenario-title { font-size: 18px; font-weight: 700; color: #F8FAFC; margin-bottom: 4px; }
+.scenario-pct { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #3B82F6; margin-bottom: 16px; }
+.scenario-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(30,41,59,0.5);
+}
+.scenario-row:last-child { border-bottom: none; }
+.scenario-row span:first-child { color: #94A3B8; }
+.scenario-row span:last-child { font-family: 'JetBrains Mono', monospace; color: #E2E8F0; }
+.scenario-row.highlight span:last-child { color: #10B981; font-weight: 700; }
+
+.note-box {
+  background: rgba(59,130,246,0.08);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #94A3B8;
+  margin-bottom: 24px;
+}
+.note-box strong { color: #E2E8F0; }
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #F8FAFC;
+  margin-bottom: 16px;
+}
+.section-sub {
+  font-size: 13px;
+  color: #64748B;
+  margin-bottom: 20px;
+}
+
+.finalized-count {
+  display: inline-block;
+  background: rgba(245,158,11,0.15);
+  color: #F59E0B;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 6px;
+  margin-left: 8px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-label">Financial Review</div>
+    <div class="header-title">New Port Hill Addition</div>
+    <div class="header-sub">GQS Budget Analysis — Project In Progress <span class="finalized-count">17 of 25 categories finalized</span></div>
+  </div>
+  <button class="download-btn" onclick="downloadExcel()">📥 Export Excel</button>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('overview')">Overview</button>
+  <button class="tab-btn" onclick="switchTab('costs')">Cost Comparison</button>
+  <button class="tab-btn" onclick="switchTab('sqft')">Cost / Sq Ft</button>
+  <button class="tab-btn" onclick="switchTab('overhead')">Overhead</button>
+</div>
+
+<!-- OVERVIEW TAB -->
+<div id="tab-overview" class="tab-content active">
+  <div class="kpi-grid">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-label">Original Contract</div>
+      <div class="kpi-value mono">$246,975</div>
+      <div class="kpi-sub">Total estimated value</div>
+    </div>
+    <div class="kpi-card kpi-purple">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-label">Total Actual (to date)</div>
+      <div class="kpi-value mono">$108,552</div>
+      <div class="kpi-sub">17 of 25 categories</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-label">Projected Profit</div>
+      <div class="kpi-value mono green">$138,423</div>
+      <div class="kpi-sub">Based on actuals to date</div>
+    </div>
+    <div class="kpi-card kpi-yellow">
+      <div class="kpi-icon">🎯</div>
+      <div class="kpi-label">Projected Margin</div>
+      <div class="kpi-value mono">56.0%</div>
+      <div class="kpi-sub">Contract value vs cost</div>
+    </div>
+  </div>
+
+  <div class="note-box">
+    <strong>⚠️ Partial Data:</strong> 8 categories still pending final actual costs. Projected profit is based on finalized actuals only — final margin will change as remaining costs come in.
+  </div>
+
+  <div class="section-title">Budget vs Actual</div>
+  <div class="chart-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(90deg,#3B82F6,#60A5FA)"></div> Estimated</div>
+    <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(90deg,#8B5CF6,#A78BFA)"></div> Actual</div>
+    <div class="legend-item"><div class="legend-dot" style="background:repeating-linear-gradient(45deg,#374151,#374151 4px,#4B5563 4px,#4B5563 8px)"></div> Pending</div>
+  </div>
+  <div id="chart-container" class="card chart-container" style="padding:20px; max-height:600px; overflow-y:auto;"></div>
+
+  <div style="margin-top:24px;">
+    <div class="section-title">Subcontractor Performance</div>
+    <div class="section-sub">Categories with both bid and actual costs — showing bid accuracy</div>
+    <div id="sub-grid" class="sub-grid"></div>
+  </div>
+</div>
+
+<!-- COST COMPARISON TAB -->
+<div id="tab-costs" class="tab-content">
+  <div class="section-title">Full Cost Comparison</div>
+  <div class="section-sub">All 25 budget categories with estimated, bid, and actual costs</div>
+  <div class="table-wrapper" id="cost-table-wrapper"></div>
+</div>
+
+<!-- SQFT TAB -->
+<div id="tab-sqft" class="tab-content">
+  <div class="section-title">Cost per Square Foot Analysis</div>
+  <div class="note-box">
+    <strong>ℹ️ Square footage not yet provided.</strong> Enter the addition's square footage below to calculate cost-per-sqft breakdowns for key trades.
+  </div>
+  <div class="sqft-input-area">
+    <label for="sqft-input">Addition Square Footage</label>
+    <input type="number" id="sqft-input" class="sqft-input" placeholder="e.g. 1200" oninput="updateSqft()">
+  </div>
+  <div id="sqft-cards" class="sqft-cards"></div>
+</div>
+
+<!-- OVERHEAD TAB -->
+<div id="tab-overhead" class="tab-content">
+  <div class="section-title">Overhead Allocation Scenarios</div>
+  <div class="note-box">
+    <strong>ℹ️ Assumptions:</strong> Monthly overhead estimated at <span class="mono">$22,000/mo</span> over <span class="mono">4 months</span> project duration ($88,000 total). These are editable assumptions — Sara can adjust as needed.
+  </div>
+  <div id="overhead-scenarios" class="overhead-scenarios"></div>
+</div>
+
+<script>
+// ============ DATA ============
+const categories = [
+  { name: "Design Services", est: 8500, bid: 4050, actual: 4050 },
+  { name: "Building Permits", est: 1286.74, bid: 1501.44, actual: 1501.44 },
+  { name: "Project Overhead", est: 5500, bid: null, actual: 7273.10 },
+  { name: "Demo/Tearoff", est: 7000, bid: 3767.50, actual: 3767.50 },
+  { name: "Protection", est: 1000, bid: null, actual: null },
+  { name: "Foundation", est: 4500, bid: 1648, actual: 1648 },
+  { name: "Framing Labor", est: 19975, bid: 9693, actual: 10439 },
+  { name: "Framing Materials & Trusses", est: 19975, bid: 18325.20, actual: null },
+  { name: "Deck & Railing", est: 7500, bid: null, actual: 5097.13 },
+  { name: "Roofing", est: 8500, bid: 7500, actual: 9100 },
+  { name: "Gutters", est: 2000, bid: 1475, actual: 1138 },
+  { name: "Siding", est: 17500, bid: 13519.75, actual: null },
+  { name: "Windows & Skylight", est: 8000, bid: null, actual: null },
+  { name: "Electrical", est: 11300, bid: 7820, actual: 7945 },
+  { name: "Plumbing", est: 20000, bid: null, actual: 23525 },
+  { name: "Insulation", est: 6500, bid: 5700, actual: 5700 },
+  { name: "HVAC", est: 13500, bid: 12719, actual: 12719 },
+  { name: "Drywall & Texture", est: 11000, bid: 10100, actual: 10100 },
+  { name: "Exterior Paint", est: 4500, bid: 5500, actual: 2500 },
+  { name: "Flooring", est: 3200, bid: null, actual: null },
+  { name: "Shower Glass", est: 1800, bid: 995, actual: 995 },
+  { name: "3-Panel Sliding Door", est: 14000, bid: 6605.11, actual: 6605.11 },
+  { name: "Interior Doors (2)", est: 500, bid: null, actual: null },
+  { name: "Overhead & Profit", est: 46938, bid: null, actual: null },
+  { name: "Payment Schedule Diff", est: 2499.80, bid: null, actual: null },
+];
+
+const SUMMARY = {
+  contractValue: 246974.54,
+  totalBids: 105367.56,
+  totalActual: 108551.84,
+  projectedProfit: 138422.70,
+  projectedMargin: 56.0
+};
+
+const finalized = categories.filter(c => c.actual !== null).length;
+const totalCats = categories.length;
+
+// ============ HELPERS ============
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+function fmtInt(n) {
+  return '$' + Math.round(n).toLocaleString('en-US');
+}
+function pct(n) {
+  return n.toFixed(1) + '%';
+}
+
+// ============ TABS ============
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ============ CHART ============
+function renderChart() {
+  const container = document.getElementById('chart-container');
+  // Exclude Overhead & Profit and Payment Schedule Diff from chart for clarity
+  const chartCats = categories.filter(c => c.name !== 'Overhead & Profit' && c.name !== 'Payment Schedule Diff');
+  const maxVal = Math.max(...chartCats.map(c => Math.max(c.est, c.actual || 0)));
+
+  let html = '';
+  chartCats.forEach(c => {
+    const estW = (c.est / maxVal * 100).toFixed(1);
+    const actW = c.actual !== null ? (c.actual / maxVal * 100).toFixed(1) : (c.est / maxVal * 40).toFixed(1);
+    const isPending = c.actual === null;
+    html += `
+      <div class="chart-bar-group">
+        <div class="chart-label" title="${c.name}">${c.name}</div>
+        <div class="chart-bars">
+          <div class="chart-bar est" style="width:${estW}%"></div>
+          <div class="chart-bar ${isPending ? 'pending' : 'actual'}" style="width:${isPending ? estW * 0.4 : actW}%"></div>
+        </div>
+        <div class="chart-amount mono">${isPending ? 'Pending' : fmt(c.actual)}</div>
+      </div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ============ SUB PERFORMANCE ============
+function renderSubPerformance() {
+  const grid = document.getElementById('sub-grid');
+  const subs = categories.filter(c => c.bid !== null && c.actual !== null);
+  let html = '';
+  subs.forEach(c => {
+    const variance = c.actual - c.bid;
+    const variancePct = ((c.actual - c.bid) / c.bid * 100);
+    const isUnder = variance <= 0;
+    const pctOfBid = (c.actual / c.bid * 100);
+    const barColor = isUnder ? '#10B981' : '#EF4444';
+    const barW = Math.min(pctOfBid, 150);
+    html += `
+      <div class="sub-card">
+        <div class="sub-card-header">
+          <div class="sub-card-name">${c.name}</div>
+          <div class="sub-card-badge ${isUnder ? 'under' : 'over'}">${isUnder ? '' : '+'}${variancePct.toFixed(1)}%</div>
+        </div>
+        <div class="sub-card-row"><span>Bid</span><span>${fmt(c.bid)}</span></div>
+        <div class="sub-card-row"><span>Actual</span><span>${fmt(c.actual)}</span></div>
+        <div class="sub-card-row"><span>Variance</span><span style="color:${isUnder ? '#10B981' : '#EF4444'}">${isUnder ? '-' : '+'}${fmt(Math.abs(variance))}</span></div>
+        <div class="sub-progress-bar">
+          <div class="sub-progress-fill" style="width:${Math.min(barW, 100)}%; background:${barColor}"></div>
+        </div>
+      </div>`;
+  });
+  grid.innerHTML = html;
+}
+
+// ============ COST TABLE ============
+function renderCostTable() {
+  const wrapper = document.getElementById('cost-table-wrapper');
+  let totalEst = 0, totalBid = 0, totalActual = 0;
+  let bidCount = 0, actualCount = 0;
+
+  let rows = '';
+  categories.forEach(c => {
+    totalEst += c.est;
+    if (c.bid !== null) { totalBid += c.bid; bidCount++; }
+    if (c.actual !== null) { totalActual += c.actual; actualCount++; }
+
+    const variance = c.actual !== null ? c.est - c.actual : null;
+    const variancePct = variance !== null ? (variance / c.est * 100) : null;
+    let varianceHtml = '<span class="pending-text">—</span>';
+    if (variance !== null) {
+      const cls = variance >= 0 ? 'under' : 'over';
+      const sign = variance >= 0 ? '+' : '';
+      varianceHtml = `<span class="variance-chip ${cls}">${sign}${fmt(Math.abs(variance))} (${variance >= 0 ? '' : '-'}${Math.abs(variancePct).toFixed(1)}%)</span>`;
+    }
+
+    rows += `<tr>
+      <td>${c.name}</td>
+      <td class="mono">${fmt(c.est)}</td>
+      <td class="mono">${c.bid !== null ? fmt(c.bid) : '<span class="pending-text">—</span>'}</td>
+      <td class="mono">${c.actual !== null ? fmt(c.actual) : '<span class="pending-text">Pending</span>'}</td>
+      <td>${varianceHtml}</td>
+    </tr>`;
+  });
+
+  rows += `<tr class="totals-row">
+    <td>TOTALS</td>
+    <td class="mono">${fmt(totalEst)}</td>
+    <td class="mono">${fmt(totalBid)} <span style="font-size:10px;color:#64748B">(${bidCount} items)</span></td>
+    <td class="mono">${fmt(totalActual)} <span style="font-size:10px;color:#64748B">(${actualCount} items)</span></td>
+    <td><span class="variance-chip under">+${fmt(totalEst - totalActual)}</span></td>
+  </tr>`;
+
+  wrapper.innerHTML = `
+    <table>
+      <thead><tr>
+        <th>Category</th><th>Estimated</th><th>Bid</th><th>Actual</th><th>Variance (Est vs Actual)</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ============ SQFT ============
+const sqftTrades = [
+  { name: 'Plumbing', actual: 23525 },
+  { name: 'Electrical', actual: 7945 },
+  { name: 'HVAC', actual: 12719 },
+  { name: 'Roofing', actual: 9100 },
+];
+// Siding doesn't have actual yet, so exclude
+function updateSqft() {
+  const input = document.getElementById('sqft-input');
+  const sqft = parseFloat(input.value);
+  const container = document.getElementById('sqft-cards');
+
+  if (!sqft || sqft <= 0) {
+    container.innerHTML = sqftTrades.map(t => `
+      <div class="sqft-card">
+        <div class="sqft-card-name">${t.name}</div>
+        <div class="sqft-card-value mono" style="color:#64748B">—</div>
+        <div class="sqft-card-sub">Enter sqft above</div>
+      </div>`).join('');
+    return;
+  }
+
+  container.innerHTML = sqftTrades.map(t => {
+    const perSqft = t.actual / sqft;
+    return `
+      <div class="sqft-card">
+        <div class="sqft-card-name">${t.name}</div>
+        <div class="sqft-card-value mono">$${perSqft.toFixed(2)}</div>
+        <div class="sqft-card-sub">${fmt(t.actual)} ÷ ${sqft.toLocaleString()} sqft</div>
+      </div>`;
+  }).join('');
+
+  // Add total card
+  const totalActualTrades = sqftTrades.reduce((s, t) => s + t.actual, 0);
+  container.innerHTML += `
+    <div class="sqft-card" style="border:1px solid #3B82F6">
+      <div class="sqft-card-name" style="color:#3B82F6">Total (4 Trades)</div>
+      <div class="sqft-card-value mono blue">$${(totalActualTrades / sqft).toFixed(2)}</div>
+      <div class="sqft-card-sub">${fmt(totalActualTrades)} ÷ ${sqft.toLocaleString()} sqft</div>
+    </div>`;
+}
+
+// ============ OVERHEAD SCENARIOS ============
+function renderOverhead() {
+  const container = document.getElementById('overhead-scenarios');
+  const monthlyOverhead = 22000;
+  const months = 4;
+  const totalOverhead = monthlyOverhead * months;
+  const totalActual = SUMMARY.totalActual;
+  const contractVal = SUMMARY.contractValue;
+
+  const scenarios = [
+    { name: 'Conservative', pct: 35, desc: '35% allocation' },
+    { name: 'Moderate', pct: 50, desc: '50% allocation', recommended: true },
+    { name: 'Aggressive', pct: 65, desc: '65% allocation' },
+  ];
+
+  container.innerHTML = scenarios.map(s => {
+    const allocated = totalOverhead * (s.pct / 100);
+    const totalCostWithOH = totalActual + allocated;
+    const profit = contractVal - totalCostWithOH;
+    const margin = (profit / contractVal * 100);
+
+    return `
+      <div class="scenario-card ${s.recommended ? 'recommended' : ''}">
+        ${s.recommended ? '<div class="scenario-badge">Recommended</div>' : ''}
+        <div class="scenario-title">${s.name}</div>
+        <div class="scenario-pct">${s.desc}</div>
+        <div class="scenario-row"><span>Monthly Overhead</span><span>${fmtInt(monthlyOverhead)}</span></div>
+        <div class="scenario-row"><span>Duration</span><span>${months} months</span></div>
+        <div class="scenario-row"><span>Total Overhead</span><span>${fmtInt(totalOverhead)}</span></div>
+        <div class="scenario-row"><span>Allocated (${s.pct}%)</span><span>${fmtInt(allocated)}</span></div>
+        <div class="scenario-row"><span>Direct Costs</span><span>${fmtInt(totalActual)}</span></div>
+        <div class="scenario-row"><span>Total w/ Overhead</span><span>${fmtInt(totalCostWithOH)}</span></div>
+        <div class="scenario-row highlight"><span>Net Profit</span><span>${fmtInt(profit)}</span></div>
+        <div class="scenario-row highlight"><span>Margin</span><span>${pct(margin)}</span></div>
+      </div>`;
+  }).join('');
+}
+
+// ============ EXCEL DOWNLOAD ============
+function downloadExcel() {
+  const wb = XLSX.utils.book_new();
+
+  // Build data array
+  const data = [];
+  // Summary section
+  data.push(['New Port Hill Addition — Financial Summary']);
+  data.push([]);
+  data.push(['Original Contract Value', SUMMARY.contractValue]);
+  data.push(['Total Actual Cost (to date)', SUMMARY.totalActual]);
+  data.push(['Projected Profit', SUMMARY.projectedProfit]);
+  data.push(['Projected Margin', SUMMARY.projectedMargin / 100]);
+  data.push(['Categories Finalized', finalized + ' of ' + totalCats]);
+  data.push([]);
+
+  // Headers
+  data.push(['Category', 'Estimated', 'Bid', 'Actual', 'Variance ($)', 'Variance (%)']);
+
+  // Data rows
+  let totalEst = 0, totalBid = 0, totalAct = 0;
+  categories.forEach(c => {
+    totalEst += c.est;
+    if (c.bid !== null) totalBid += c.bid;
+    if (c.actual !== null) totalAct += c.actual;
+    const variance = c.actual !== null ? c.est - c.actual : null;
+    const variancePct = variance !== null ? variance / c.est : null;
+    data.push([
+      c.name,
+      c.est,
+      c.bid,
+      c.actual,
+      variance,
+      variancePct
+    ]);
+  });
+
+  // Totals
+  data.push(['TOTALS', totalEst, totalBid, totalAct, totalEst - totalAct, (totalEst - totalAct) / totalEst]);
+
+  const ws = XLSX.utils.aoa_to_sheet(data);
+
+  // Column widths
+  ws['!cols'] = [
+    { wch: 28 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }
+  ];
+
+  // Freeze first row of the table (row 9, 0-indexed)
+  ws['!freeze'] = { xSplit: 0, ySplit: 9 };
+
+  // Number formats for currency columns
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let R = 2; R <= 5; R++) {
+    for (let C = 1; C <= 1; C++) {
+      const addr = XLSX.utils.encode_cell({ r: R, c: C });
+      if (ws[addr]) {
+        if (R === 5) {
+          ws[addr].z = '0.0%';
+        } else {
+          ws[addr].z = '$#,##0.00';
+        }
+      }
+    }
+  }
+
+  // Format data rows
+  for (let R = 9; R <= range.e.r; R++) {
+    for (let C = 1; C <= 4; C++) {
+      const addr = XLSX.utils.encode_cell({ r: R, c: C });
+      if (ws[addr] && ws[addr].v !== null && typeof ws[addr].v === 'number') {
+        ws[addr].z = '$#,##0.00';
+      }
+    }
+    // Percentage column
+    const pctAddr = XLSX.utils.encode_cell({ r: R, c: 5 });
+    if (ws[pctAddr] && ws[pctAddr].v !== null && typeof ws[pctAddr].v === 'number') {
+      ws[pctAddr].z = '0.0%';
+    }
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Financial Summary');
+  XLSX.writeFile(wb, 'NewPortHill_Financial_Summary.xlsx');
+}
+
+// ============ INIT ============
+renderChart();
+renderSubPerformance();
+renderCostTable();
+updateSqft();
+renderOverhead();
+</script>
+</body>
+</html>
