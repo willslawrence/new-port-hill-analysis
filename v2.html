@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Project Analysis">
+<title>New Port Hill Addition | Project Analysis</title>
+<style>
+  :root {
+    --bg: #0f1117; --card: #1a1d28; --card-border: #252836;
+    --text: #e4e6eb; --muted: #6b7084;
+    --green: #4ade80; --green-dim: #166534;
+    --red: #f87171; --red-dim: #7f1d1d;
+    --blue: #60a5fa; --amber: #fbbf24; --purple: #a78bfa;
+    --divider: #1e2030;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: var(--bg); color: var(--text);
+    min-height: 100vh; padding: 0 14px 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .header {
+    text-align: center; padding: 20px 0 16px;
+    position: sticky; top: 0; background: var(--bg); z-index: 10;
+  }
+  .header h1 { font-size: 20px; font-weight: 700; }
+  .header .subtitle { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .header .updated { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+  .summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 16px; }
+  .summary-card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 12px 8px; text-align: center;
+  }
+  .summary-card .label { font-size: 9px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 4px; }
+  .summary-card .value { font-size: 18px; font-weight: 700; }
+  .summary-card .subtext { font-size: 8px; color: var(--muted); margin-top: 2px; }
+
+  .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); padding: 14px 4px 8px; font-weight: 600; }
+
+  .cards { display: flex; flex-direction: column; gap: 10px; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--card-border);
+    border-radius: 16px; padding: 16px; overflow: hidden; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .card-header .left { display: flex; align-items: center; gap: 8px; }
+  .card-header .icon { 
+    width: 32px; height: 32px; border-radius: 8px; 
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .card-header .title-group .name { font-size: 16px; font-weight: 700; }
+  .card-header .title-group .subtitle { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  
+  .badge { font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 8px; white-space: nowrap; }
+  .badge.success { background: var(--green-dim); color: var(--green); }
+  .badge.warning { background: rgba(251, 191, 36, 0.2); color: var(--amber); }
+  .badge.info { background: rgba(96, 165, 250, 0.2); color: var(--blue); }
+
+  .metrics { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px 12px; margin-bottom: 8px; }
+  .metric .label { font-size: 8.5px; text-transform: uppercase; letter-spacing: .3px; color: var(--muted); margin-bottom: 1px; }
+  .metric .val { font-size: 13px; font-weight: 600; }
+
+  .progress-bar { margin-top: 8px; height: 6px; border-radius: 3px; background: #252836; overflow: hidden; }
+  .progress-bar .fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+
+  .expand-hint { 
+    text-align: center; font-size: 10px; color: var(--muted); 
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid var(--divider);
+  }
+
+  /* Expandable content */
+  .detail-section {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .card.expanded .detail-section { max-height: 2000px; }
+  .card.expanded .expand-hint { display: none; }
+
+  .detail-inner {
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px solid var(--divider);
+  }
+  .detail-label { font-size: 9px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+
+  .detail-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 6px 12px; }
+  .detail-item .label { font-size: 8px; text-transform: uppercase; letter-spacing: .3px; color: var(--muted); margin-bottom: 2px; }
+  .detail-item .value { font-size: 12px; font-weight: 600; }
+
+  .cost-breakdown { margin-top: 12px; }
+  .cost-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid var(--divider);
+    font-size: 11px;
+  }
+  .cost-row:last-child { border-bottom: none; }
+  .cost-row .category { color: var(--text); }
+  .cost-row .amount { font-weight: 600; }
+  .cost-row .variance { font-size: 10px; }
+  .cost-row .positive { color: var(--green); }
+  .cost-row .negative { color: var(--red); }
+
+  .risk-factors { margin-top: 12px; }
+  .risk-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; font-size: 10px;
+  }
+  .risk-icon {
+    width: 16px; height: 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 8px; flex-shrink: 0;
+  }
+  .risk-low { background: var(--green-dim); color: var(--green); }
+  .risk-med { background: rgba(251, 191, 36, 0.2); color: var(--amber); }
+  .risk-high { background: var(--red-dim); color: var(--red); }
+
+  .timeline-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0; font-size: 10px;
+    border-bottom: 1px solid var(--divider);
+  }
+  .timeline-item:last-child { border-bottom: none; }
+  .timeline-phase { color: var(--text); font-weight: 600; }
+  .timeline-date { color: var(--muted); }
+  .timeline-status { padding: 2px 6px; border-radius: 4px; font-size: 8px; }
+
+  .insights-section { margin-top: 12px; }
+  .insight-item {
+    background: rgba(96, 165, 250, 0.1); 
+    border-radius: 8px; padding: 8px; margin-bottom: 6px;
+    font-size: 10px; line-height: 1.4;
+  }
+  .insight-item:last-child { margin-bottom: 0; }
+  .insight-icon { color: var(--blue); font-weight: bold; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>New Port Hill Addition</h1>
+  <div class="subtitle">Ben Ritter • General Quality Services LLC</div>
+  <div class="updated">Financial Analysis • March 3, 2026</div>
+</div>
+
+<div class="summary">
+  <div class="summary-card">
+    <div class="label">Project Value</div>
+    <div class="value" style="color: var(--blue)">$263K</div>
+    <div class="subtext">+12% vs estimate</div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Net Profit</div>
+    <div class="value" style="color: var(--green)">$87K</div>
+    <div class="subtext">33% margin</div>
+  </div>
+  <div class="summary-card">
+    <div class="label">Performance</div>
+    <div class="value" style="color: var(--green)">A+</div>
+    <div class="subtext">Exceeded goals</div>
+  </div>
+</div>
+
+<div class="section-label">Key Business Insights</div>
+
+<div class="cards">
+  
+  <!-- Financial Performance Card -->
+  <div class="card" onclick="this.classList.toggle('expanded')">
+    <div class="card-header">
+      <div class="left">
+        <div class="icon" style="background: var(--green-dim); color: var(--green);">💰</div>
+        <div class="title-group">
+          <div class="name">Financial Performance</div>
+          <div class="subtitle">Revenue, costs, and profitability</div>
+        </div>
+      </div>
+      <div class="badge success">Excellent</div>
+    </div>
+    
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">Gross Profit</div>
+        <div class="val" style="color: var(--green)">$91,224</div>
+      </div>
+      <div class="metric">
+        <div class="label">Net Margin</div>
+        <div class="val" style="color: var(--green)">33.0%</div>
+      </div>
+      <div class="metric">
+        <div class="label">vs Industry</div>
+        <div class="val" style="color: var(--blue)">+8% above</div>
+      </div>
+      <div class="metric">
+        <div class="label">Cost Control</div>
+        <div class="val" style="color: var(--green)">Strong</div>
+      </div>
+    </div>
+    
+    <div class="progress-bar">
+      <div class="fill" style="width: 85%; background: var(--green);"></div>
+    </div>
+    
+    <div class="expand-hint">tap for detailed breakdown ▾</div>
+    
+    <div class="detail-section">
+      <div class="detail-inner">
+        <div class="detail-label">Revenue Breakdown</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="label">Base Contract</div>
+            <div class="value">$237,189</div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Change Orders</div>
+            <div class="value" style="color: var(--blue)">$25,641</div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Total Revenue</div>
+            <div class="value">$262,830</div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Markup Applied</div>
+            <div class="value">25%</div>
+          </div>
+        </div>
+        
+        <div class="cost-breakdown">
+          <div class="detail-label">Cost Analysis</div>
+          <div class="cost-row">
+            <span class="category">Labor & Management</span>
+            <span class="amount">$18,384</span>
+            <span class="variance positive">-5% vs budget</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Subcontractors</span>
+            <span class="amount">$92,167</span>
+            <span class="variance positive">On target</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Materials</span>
+            <span class="amount">$52,850</span>
+            <span class="variance positive">-3% vs budget</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Project Overhead</span>
+            <span class="amount">$8,205</span>
+            <span class="variance negative">+10% vs budget</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Execution Card -->
+  <div class="card" onclick="this.classList.toggle('expanded')">
+    <div class="card-header">
+      <div class="left">
+        <div class="icon" style="background: rgba(96, 165, 250, 0.2); color: var(--blue);">🏗️</div>
+        <div class="title-group">
+          <div class="name">Project Execution</div>
+          <div class="subtitle">Timeline, quality, and delivery</div>
+        </div>
+      </div>
+      <div class="badge info">On Track</div>
+    </div>
+    
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">Timeline</div>
+        <div class="val" style="color: var(--blue)">16 weeks</div>
+      </div>
+      <div class="metric">
+        <div class="label">Change Orders</div>
+        <div class="val" style="color: var(--amber)">6 orders</div>
+      </div>
+      <div class="metric">
+        <div class="label">Completion</div>
+        <div class="val" style="color: var(--green)">Feb 2026</div>
+      </div>
+      <div class="metric">
+        <div class="label">Quality Score</div>
+        <div class="val" style="color: var(--green)">Excellent</div>
+      </div>
+    </div>
+    
+    <div class="progress-bar">
+      <div class="fill" style="width: 78%; background: var(--blue);"></div>
+    </div>
+    
+    <div class="expand-hint">tap for project timeline ▾</div>
+    
+    <div class="detail-section">
+      <div class="detail-inner">
+        <div class="detail-label">Project Timeline</div>
+        <div class="timeline-item">
+          <span class="timeline-phase">Design & Permits</span>
+          <span class="timeline-date">Apr 2025</span>
+          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-phase">Phase 1 (Foundation)</span>
+          <span class="timeline-date">Nov 2025</span>
+          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-phase">Phase 2 (Framing)</span>
+          <span class="timeline-date">Dec 2025</span>
+          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-phase">Phase 3 (Systems)</span>
+          <span class="timeline-date">Jan 2026</span>
+          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
+        </div>
+        <div class="timeline-item">
+          <span class="timeline-phase">Phase 4 (Finishes)</span>
+          <span class="timeline-date">Feb 2026</span>
+          <span class="timeline-status" style="background: var(--green-dim); color: var(--green);">Complete</span>
+        </div>
+        
+        <div class="insights-section">
+          <div class="detail-label">Change Order Analysis</div>
+          <div class="insight-item">
+            <span class="insight-icon">💡</span> 6 change orders added $25,641 (+11%) to project value - strong client satisfaction and trust
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">📈</span> Most changes were upgrades (skylights, doors, wiring) showing client confidence in quality
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">⚠️</span> Future: Consider including more upgrade options in initial estimates
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Assessment Card -->
+  <div class="card" onclick="this.classList.toggle('expanded')">
+    <div class="card-header">
+      <div class="left">
+        <div class="icon" style="background: var(--green-dim); color: var(--green);">🛡️</div>
+        <div class="title-group">
+          <div class="name">Risk Assessment</div>
+          <div class="subtitle">Project and business risk factors</div>
+        </div>
+      </div>
+      <div class="badge success">Low Risk</div>
+    </div>
+    
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">Payment Risk</div>
+        <div class="val" style="color: var(--green)">Low</div>
+      </div>
+      <div class="metric">
+        <div class="label">Cost Overrun</div>
+        <div class="val" style="color: var(--green)">Minimal</div>
+      </div>
+      <div class="metric">
+        <div class="label">Client Satisfaction</div>
+        <div class="val" style="color: var(--green)">High</div>
+      </div>
+      <div class="metric">
+        <div class="label">Repeat Business</div>
+        <div class="val" style="color: var(--blue)">Likely</div>
+      </div>
+    </div>
+    
+    <div class="progress-bar">
+      <div class="fill" style="width: 90%; background: var(--green);"></div>
+    </div>
+    
+    <div class="expand-hint">tap for risk breakdown ▾</div>
+    
+    <div class="detail-section">
+      <div class="detail-inner">
+        <div class="detail-label">Risk Factors</div>
+        <div class="risk-factors">
+          <div class="risk-item">
+            <div class="risk-icon risk-low">✓</div>
+            <span>Payment Terms: Progressive payments received on time throughout project</span>
+          </div>
+          <div class="risk-item">
+            <div class="risk-icon risk-low">✓</div>
+            <span>Weather/Seasonal: Project completed before winter weather impact</span>
+          </div>
+          <div class="risk-item">
+            <div class="risk-icon risk-low">✓</div>
+            <span>Permit/Regulatory: All permits secured, no compliance issues</span>
+          </div>
+          <div class="risk-item">
+            <div class="risk-icon risk-med">!</div>
+            <span>Subcontractor Dependence: 54% of costs from subcontractors (industry average: 65%)</span>
+          </div>
+          <div class="risk-item">
+            <div class="risk-icon risk-med">!</div>
+            <span>Material Price Volatility: Fixed pricing helped control costs in current market</span>
+          </div>
+        </div>
+        
+        <div class="insights-section">
+          <div class="detail-label">Strategic Insights</div>
+          <div class="insight-item">
+            <span class="insight-icon">🎯</span> Client ordered 6 change orders - indicates strong satisfaction and trust
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">🔄</span> Ben Ritter likely to recommend services to others (high-value referral source)
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">💼</span> Premium pricing justified by quality execution and client experience
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Business Impact Card -->
+  <div class="card" onclick="this.classList.toggle('expanded')">
+    <div class="card-header">
+      <div class="left">
+        <div class="icon" style="background: rgba(167, 139, 250, 0.2); color: var(--purple);">📊</div>
+        <div class="title-group">
+          <div class="name">Business Impact</div>
+          <div class="subtitle">Strategic value and future opportunity</div>
+        </div>
+      </div>
+      <div class="badge info">High Value</div>
+    </div>
+    
+    <div class="metrics">
+      <div class="metric">
+        <div class="label">ROI</div>
+        <div class="val" style="color: var(--purple)">49%</div>
+      </div>
+      <div class="metric">
+        <div class="label">Cash Flow</div>
+        <div class="val" style="color: var(--green)">Positive</div>
+      </div>
+      <div class="metric">
+        <div class="label">Market Position</div>
+        <div class="val" style="color: var(--blue)">Premium</div>
+      </div>
+      <div class="metric">
+        <div class="label">Referral Value</div>
+        <div class="val" style="color: var(--purple)">High</div>
+      </div>
+    </div>
+    
+    <div class="progress-bar">
+      <div class="fill" style="width: 88%; background: var(--purple);"></div>
+    </div>
+    
+    <div class="expand-hint">tap for business analysis ▾</div>
+    
+    <div class="detail-section">
+      <div class="detail-inner">
+        <div class="detail-label">Strategic Value Analysis</div>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="label">Project Duration</div>
+            <div class="value">10 months</div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Monthly Revenue</div>
+            <div class="value">$26,283</div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Cash Velocity</div>
+            <div class="value" style="color: var(--green)">1.53x</div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Margin vs Target</div>
+            <div class="value" style="color: var(--green)">+8%</div>
+          </div>
+        </div>
+        
+        <div class="insights-section">
+          <div class="detail-label">Future Opportunity</div>
+          <div class="insight-item">
+            <span class="insight-icon">💰</span> High-margin client: 33% net margin vs 25% company average
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">🏘️</span> Neighborhood potential: Premium area with renovation activity
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">📞</span> Client relationship: Ben Ritter likely source of referrals
+          </div>
+          <div class="insight-item">
+            <span class="insight-icon">🎖️</span> Portfolio piece: Showcase project for future high-end estimates
+          </div>
+        </div>
+
+        <div class="detail-label">Overhead Allocation Scenarios</div>
+        <div class="cost-breakdown">
+          <div class="cost-row">
+            <span class="category">Conservative (30%)</span>
+            <span class="amount">$26,400</span>
+            <span class="variance positive">Net: $60,425 (23%)</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Moderate (50%)</span>
+            <span class="amount">$44,000</span>
+            <span class="variance">Net: $42,825 (16%)</span>
+          </div>
+          <div class="cost-row">
+            <span class="category">Aggressive (70%)</span>
+            <span class="amount">$61,600</span>
+            <span class="variance negative">Net: $25,225 (10%)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Add any interactive functionality here if needed
+document.addEventListener('DOMContentLoaded', function() {
+    // Optional: Auto-expand first card on load for demo
+    // document.querySelector('.card').classList.add('expanded');
+});
+</script>
+
+</body>
+</html>

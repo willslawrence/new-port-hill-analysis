@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>New Port Hill Addition - Financial Analysis</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .dashboard { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .metric { text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; }
+        .metric h3 { margin: 0; color: #333; font-size: 14px; text-transform: uppercase; }
+        .metric .value { font-size: 24px; font-weight: bold; color: #007bff; margin: 10px 0; }
+        .positive { color: #28a745; }
+        .negative { color: #dc3545; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px; text-align: right; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: bold; }
+        .category { text-align: left; font-weight: bold; }
+        .total-row { background: #f0f8ff; font-weight: bold; }
+        .header { text-align: center; color: #333; margin-bottom: 30px; }
+        .note { background: #fff3cd; padding: 15px; border-radius: 6px; border-left: 4px solid #ffc107; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>New Port Hill Addition</h1>
+            <h2>Financial Analysis Dashboard</h2>
+            <p>Client: Ben Ritter | Report Date: March 03, 2026</p>
+        </div>
+        
+        <div class="card">
+            <h2>Executive Summary</h2>
+            <div class="summary-grid">
+                <div class="metric">
+                    <h3>Total Revenue</h3>
+                    <div class="value">$262,830</div>
+                </div>
+                <div class="metric">
+                    <h3>Total Costs</h3>
+                    <div class="value">$171,606</div>
+                </div>
+                <div class="metric">
+                    <h3>Gross Profit</h3>
+                    <div class="value positive">$91,223</div>
+                </div>
+                <div class="metric">
+                    <h3>Gross Margin</h3>
+                    <div class="value positive">34.7%</div>
+                </div>
+                <div class="metric">
+                    <h3>Net Profit</h3>
+                    <div class="value positive">$86,825</div>
+                </div>
+                <div class="metric">
+                    <h3>Net Margin</h3>
+                    <div class="value positive">33.0%</div>
+                </div>
+                <div class="metric">
+                    <h3>Revenue vs Estimate</h3>
+                    <div class="value positive">$28,142</div>
+                    <small>(+12.0%)</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Project Cost Comparison</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th class="category">Cost Category</th>
+                        <th>Original Estimate</th>
+                        <th>Subcontractor Bid</th>
+                        <th>Actual Cost</th>
+                        <th>Variance ($)</th>
+                        <th>Variance (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+    
+                    <tr>
+                        <td class="category">Site Work</td>
+                        <td>$8,000</td>
+                        <td>$8,400</td>
+                        <td>$6,737</td>
+                        <td class="positive">$-1,263</td>
+                        <td class="positive">-15.8%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Concrete</td>
+                        <td>$4,500</td>
+                        <td>$4,725</td>
+                        <td>$3,600</td>
+                        <td class="positive">$-900</td>
+                        <td class="positive">-20.0%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Framing</td>
+                        <td>$39,950</td>
+                        <td>$41,948</td>
+                        <td>$43,945</td>
+                        <td class="negative">$+3,995</td>
+                        <td class="negative">+10.0%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Plumbing</td>
+                        <td>$20,000</td>
+                        <td>$21,000</td>
+                        <td>$18,000</td>
+                        <td class="positive">$-2,000</td>
+                        <td class="positive">-10.0%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Electrical</td>
+                        <td>$11,300</td>
+                        <td>$11,865</td>
+                        <td>$9,605</td>
+                        <td class="positive">$-1,695</td>
+                        <td class="positive">-15.0%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">HVAC</td>
+                        <td>$13,500</td>
+                        <td>$14,175</td>
+                        <td>$14,175</td>
+                        <td class="negative">$+675</td>
+                        <td class="negative">+5.0%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Roofing</td>
+                        <td>$8,500</td>
+                        <td>$8,925</td>
+                        <td>$3,338</td>
+                        <td class="positive">$-5,162</td>
+                        <td class="positive">-60.7%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Siding</td>
+                        <td>$17,500</td>
+                        <td>$18,375</td>
+                        <td>$6,873</td>
+                        <td class="positive">$-10,627</td>
+                        <td class="positive">-60.7%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Windows & Doors</td>
+                        <td>$22,500</td>
+                        <td>$23,625</td>
+                        <td>$8,836</td>
+                        <td class="positive">$-13,664</td>
+                        <td class="positive">-60.7%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Insulation</td>
+                        <td>$6,500</td>
+                        <td>$6,825</td>
+                        <td>$2,553</td>
+                        <td class="positive">$-3,947</td>
+                        <td class="positive">-60.7%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Drywall</td>
+                        <td>$11,000</td>
+                        <td>$11,550</td>
+                        <td>$4,320</td>
+                        <td class="positive">$-6,680</td>
+                        <td class="positive">-60.7%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Paint</td>
+                        <td>$4,500</td>
+                        <td>$4,725</td>
+                        <td>$5,400</td>
+                        <td class="negative">$+900</td>
+                        <td class="negative">+20.0%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Flooring</td>
+                        <td>$3,200</td>
+                        <td>$3,360</td>
+                        <td>$1,257</td>
+                        <td class="positive">$-1,943</td>
+                        <td class="positive">-60.7%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Finish Carpentry</td>
+                        <td>$9,300</td>
+                        <td>$9,765</td>
+                        <td>$10,695</td>
+                        <td class="negative">$+1,395</td>
+                        <td class="negative">+15.0%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Project Management</td>
+                        <td>$5,500</td>
+                        <td>$5,775</td>
+                        <td>$21,851</td>
+                        <td class="negative">$+16,351</td>
+                        <td class="negative">+297.3%</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Project Overhead</td>
+                        <td>$2,000</td>
+                        <td>$2,100</td>
+                        <td>$20,101</td>
+                        <td class="negative">$+18,101</td>
+                        <td class="negative">+905.1%</td>
+                    </tr>
+        
+                    <tr class="total-row">
+                        <td class="category">TOTALS</td>
+                        <td>$187,750</td>
+                        <td>$197,138</td>
+                        <td>$181,286</td>
+                        <td class="positive">$-6,464</td>
+                        <td class="positive">-3.4%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h2>Company Overhead Allocation Analysis</h2>
+            <p><strong>Total Company Overhead (4 months):</strong> $88,000</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th class="category">Scenario</th>
+                        <th>Allocation %</th>
+                        <th>Allocated Amount</th>
+                        <th>Net Profit After OH</th>
+                        <th>Net Margin %</th>
+                        <th>Reasoning</th>
+                    </tr>
+                </thead>
+                <tbody>
+    
+                    <tr>
+                        <td class="category">Conservative</td>
+                        <td>30%</td>
+                        <td>$26,400</td>
+                        <td>$64,823</td>
+                        <td>24.7%</td>
+                        <td style="text-align: left;">Lower allocation assuming other projects shared overhead burden</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Moderate</td>
+                        <td>50%</td>
+                        <td>$44,000</td>
+                        <td>$47,223</td>
+                        <td>18.0%</td>
+                        <td style="text-align: left;">Realistic allocation based on project size and management time</td>
+                    </tr>
+        
+                    <tr>
+                        <td class="category">Aggressive</td>
+                        <td>70%</td>
+                        <td>$61,600</td>
+                        <td>$29,623</td>
+                        <td>11.3%</td>
+                        <td style="text-align: left;">Higher allocation assuming this was primary project during period</td>
+                    </tr>
+        
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="note">
+            <h3>Important Notes:</h3>
+            <ul>
+                <li><strong>Square Footage:</strong> Not available in source documents - cost per sq ft analysis cannot be completed</li>
+                <li><strong>Change Orders:</strong> $25,641 in change orders excluded from base cost analysis per requirements</li>
+                <li><strong>Actual Cost Mapping:</strong> Some estimate categories mapped approximately to actual cost categories</li>
+                <li><strong>Subcontractor Bids:</strong> Estimated at 105% of original estimates (actual bid data not provided)</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
+    
