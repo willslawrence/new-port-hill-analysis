@@ -122,6 +122,8 @@
   .month-income { color: var(--green); width: 70px; text-align: right; }
   .month-costs { color: var(--amber); width: 70px; text-align: right; }
   .month-net { font-weight: 600; width: 70px; text-align: right; }
+  .month-bar.header { border-bottom: 1px solid var(--muted); padding-bottom: 6px; margin-bottom: 2px; }
+  .month-bar.header span { color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; font-size: 9px; }
   .month-net.positive { color: var(--green); }
   .month-net.negative { color: var(--red); }
 
@@ -144,6 +146,10 @@
   .transaction-date { color: var(--muted); width: 70px; }
   .transaction-desc { color: var(--text); flex: 1; padding: 0 8px; }
   .transaction-amount { font-weight: 600; width: 80px; text-align: right; }
+  .transaction-row.header { border-bottom: 1px solid var(--muted); padding-bottom: 6px; margin-bottom: 2px; }
+  .transaction-row.header span { color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; font-size: 9px; }
+  .cost-row.header { border-bottom: 1px solid var(--muted); padding-bottom: 6px; margin-bottom: 2px; }
+  .cost-row.header span { color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; font-size: 9px; }
   .transaction-amount.income { color: var(--green); }
   .transaction-amount.cost { color: var(--red); }
 
@@ -221,6 +227,12 @@
       <div class="detail-inner">
         <div class="detail-label">Monthly Cash Flow Summary</div>
         <div class="cash-flow-chart">
+          <div class="month-bar header">
+            <span class="month-name">Month</span>
+            <span class="month-income">Income</span>
+            <span class="month-costs">Costs</span>
+            <span class="month-net">Net</span>
+          </div>
           <div class="month-bar">
             <span class="month-name">Apr 25</span>
             <span class="month-income">$5,100</span>
@@ -323,6 +335,11 @@
       <div class="detail-inner">
         <div class="detail-label">Cost Breakdown by Percentage</div>
         <div class="cost-breakdown">
+          <div class="cost-row header">
+            <span class="category">Category</span>
+            <span class="amount">Amount</span>
+            <span class="percentage">Share</span>
+          </div>
           <div class="cost-row">
             <span class="category">Subcontractors</span>
             <span class="amount">$92,167</span>
@@ -428,6 +445,11 @@
         
         <div class="cost-breakdown">
           <div class="detail-label">Individual Change Orders</div>
+          <div class="cost-row header">
+            <span class="category">Description</span>
+            <span class="amount">Amount</span>
+            <span class="percentage">Date</span>
+          </div>
           <div class="cost-row">
             <span class="category">Skylights (3x office)</span>
             <span class="amount">$4,500</span>
@@ -521,6 +543,11 @@
         
         <div class="detail-label" style="margin-top: 20px;">INCOME TRANSACTIONS</div>
         <div class="transaction-list">
+          <div class="transaction-row header">
+            <span class="transaction-date">Date</span>
+            <span class="transaction-desc">Description</span>
+            <span class="transaction-amount">Amount</span>
+          </div>
           <div class="transaction-row">
             <span class="transaction-date">Apr 14 25</span>
             <span class="transaction-desc">Design Services (60% upfront)</span>
@@ -605,6 +632,11 @@
         
         <div class="detail-label" style="margin-top: 20px;">COST TRANSACTIONS (Estimated Timing)</div>
         <div class="transaction-list">
+          <div class="transaction-row header">
+            <span class="transaction-date">Date</span>
+            <span class="transaction-desc">Description</span>
+            <span class="transaction-amount">Amount</span>
+          </div>
           <div class="transaction-row">
             <span class="transaction-date">Apr 15 25</span>
             <span class="transaction-desc">Design & Engineering</span>
