@@ -163,11 +163,29 @@ body {
   gap: 3px;
 }
 .chart-bar {
-  height: 14px;
+  height: 18px;
   border-radius: 4px;
   position: relative;
   min-width: 2px;
   transition: width 0.6s ease;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.85);
+  overflow: visible;
+  white-space: nowrap;
+}
+.chart-bar .bar-label {
+  pointer-events: none;
+}
+.chart-bar .bar-label.outside {
+  position: absolute;
+  right: -6px;
+  transform: translateX(100%);
+  color: #94A3B8;
 }
 .chart-bar.est { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
 .chart-bar.actual { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
@@ -425,7 +443,7 @@ tbody tr.totals-row {
     <div id="last-synced" style="font-size:11px;color:#4B5563;margin-top:4px;"></div>
   </div>
   <div style="display:flex;align-items:center;gap:12px;">
-    <img src="gqs_logo.png" alt="GQS" style="height:44px;border-radius:6px;" onerror="this.style.display='none'">
+    <img src="gqs_logo.png" alt="GQS" style="height:88px;border-radius:6px;" onerror="this.style.display='none'">
     <button class="download-btn" onclick="downloadExcel()">📥 Export Excel</button>
   </div>
 </div>
@@ -653,16 +671,27 @@ function renderChart() {
   let html = '';
   chartCats.forEach(c => {
     const estW = (c.est / maxVal * 100).toFixed(1);
-    const actW = c.actual !== null ? (c.actual / maxVal * 100).toFixed(1) : (c.est / maxVal * 40).toFixed(1);
+    const actW = c.actual !== null ? (c.actual / maxVal * 100).toFixed(1) : 0;
     const isPending = c.actual === null;
+    const bidMissing = c.bid === null;
+    // Build missing data message
+    let missingParts = [];
+    if (c.bid === null) missingParts.push('Bid');
+    if (c.actual === null) missingParts.push('Actual Cost');
+    const missingMsg = missingParts.length > 0 ? 'missing ' + missingParts.join(' & ') : '';
+    // Estimate label inside bar
+    const estLabel = fmt(c.est);
+    // Actual/pending bar label
+    const actLabel = isPending ? missingMsg : fmt(c.actual);
+    const pendingW = isPending ? (estW * 0.5) : actW;
     html += `
       <div class="chart-bar-group">
         <div class="chart-label" title="${c.name}">${c.name}</div>
         <div class="chart-bars">
-          <div class="chart-bar est" style="width:${estW}%"></div>
-          <div class="chart-bar ${isPending ? 'pending' : 'actual'}" style="width:${isPending ? estW * 0.4 : actW}%"></div>
+          <div class="chart-bar est" style="width:${estW}%"><span class="bar-label">${estLabel}</span></div>
+          <div class="chart-bar ${isPending ? 'pending' : 'actual'}" style="width:${Math.max(pendingW, 15)}%"><span class="bar-label${isPending && missingMsg.length > 10 ? ' outside' : ''}">${actLabel}</span></div>
         </div>
-        <div class="chart-amount mono">${isPending ? 'Pending' : fmt(c.actual)}</div>
+        <div class="chart-amount mono">${isPending ? '' : fmt(c.actual)}</div>
       </div>`;
   });
   container.innerHTML = html;
@@ -888,5 +917,6 @@ async function init() {
 
 init();
 </script>
+<footer style="text-align:center;padding:48px 0 24px 0;color:#374151;font-size:11px;letter-spacing:3px;font-weight:600;">WILL IS MY BROTHER™</footer>
 </body>
 </html>
