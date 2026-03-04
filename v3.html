@@ -431,6 +431,100 @@ tbody tr.totals-row {
   border-radius: 6px;
   margin-left: 8px;
 }
+
+/* Transactions tab */
+.txn-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.txn-controls select, .txn-controls input {
+  background: #111827;
+  border: 1px solid #374151;
+  color: #E2E8F0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  outline: none;
+}
+.txn-controls select:focus, .txn-controls input:focus { border-color: #3B82F6; }
+.txn-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.txn-summary-card {
+  background: linear-gradient(145deg, #111827, #1E293B);
+  border: 1px solid #1E293B;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+.txn-summary-label { font-size: 11px; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; }
+.txn-summary-value { font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 700; color: #F8FAFC; margin-top: 4px; }
+.txn-toggle {
+  display: flex;
+  gap: 4px;
+  background: #111827;
+  padding: 3px;
+  border-radius: 8px;
+}
+.txn-toggle-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #94A3B8;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.txn-toggle-btn.active { background: #3B82F6; color: #fff; }
+.vendor-bars { margin-top: 16px; }
+.vendor-bar-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  gap: 12px;
+}
+.vendor-bar-name {
+  width: 200px;
+  font-size: 12px;
+  color: #94A3B8;
+  text-align: right;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vendor-bar-fill {
+  height: 20px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.9);
+  min-width: 2px;
+  transition: width 0.4s ease;
+}
+.vendor-bar-amount {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #94A3B8;
+  width: 90px;
+  text-align: right;
+  flex-shrink: 0;
+}
 </style>
 </head>
 <body>
@@ -453,6 +547,7 @@ tbody tr.totals-row {
   <button class="tab-btn" onclick="switchTab('costs')">Cost Comparison</button>
   <button class="tab-btn" onclick="switchTab('sqft')">Cost / Sq Ft</button>
   <button class="tab-btn" onclick="switchTab('overhead')">Overhead</button>
+  <button class="tab-btn" onclick="switchTab('transactions')">Transactions</button>
 </div>
 
 <!-- OVERVIEW TAB -->
@@ -530,6 +625,35 @@ tbody tr.totals-row {
     <strong>ℹ️ Assumptions:</strong> Monthly overhead estimated at <span class="mono">$22,000/mo</span> over <span class="mono">4 months</span> project duration ($88,000 total). These are editable assumptions — Sara can adjust as needed.
   </div>
   <div id="overhead-scenarios" class="overhead-scenarios"></div>
+</div>
+
+<!-- TRANSACTIONS TAB -->
+<div id="tab-transactions" class="tab-content">
+  <div class="section-title">Transaction History</div>
+  <div class="section-sub">All project expenses and income from QuickBooks transaction reports</div>
+
+  <div class="txn-controls">
+    <div class="txn-toggle">
+      <button class="txn-toggle-btn active" onclick="switchTxnView('expenses')">Expenses</button>
+      <button class="txn-toggle-btn" onclick="switchTxnView('income')">Income</button>
+    </div>
+    <select id="txn-vendor-filter" onchange="renderTransactions()">
+      <option value="all">All Vendors</option>
+    </select>
+    <select id="txn-category-filter" onchange="renderTransactions()">
+      <option value="all">All Categories</option>
+    </select>
+    <input type="text" id="txn-search" placeholder="Search..." oninput="renderTransactions()">
+  </div>
+
+  <div id="txn-summary" class="txn-summary-grid"></div>
+
+  <div class="card" style="padding:20px;margin-bottom:24px;">
+    <div class="section-title" style="font-size:15px;">Top Vendors by Spend</div>
+    <div id="vendor-bars" class="vendor-bars"></div>
+  </div>
+
+  <div class="table-wrapper" id="txn-table-wrapper"></div>
 </div>
 
 <script>
@@ -860,6 +984,340 @@ function downloadExcel() {
   window.open(SHEET_XLSX_URL, '_blank');
 }
 
+// ============ TRANSACTIONS DATA ============
+const EXPENSE_TRANSACTIONS = [
+  {date:"2025-12-03",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:129.99},
+  {date:"2025-12-18",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:59.88},
+  {date:"2026-01-29",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:23.97},
+  {date:"2026-02-19",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:36.99},
+  {date:"2026-02-21",vendor:"Alpha Window Cleaning",desc:"Window cleaning",cat:"Subcontractors",amount:400.00},
+  {date:"2026-02-18",vendor:"Amanda Ring",desc:"Venmo payment",cat:"Cost of Labor",amount:120.00},
+  {date:"2025-07-23",vendor:"Banton Engineering",desc:"Engineering services",cat:"Design & Engineering",amount:1800.00},
+  {date:"2025-12-14",vendor:"Bolt Anglen (B-Line Electric)",desc:"Addition Rough-in",cat:"Subcontractors",amount:3910.00},
+  {date:"2026-01-02",vendor:"Bolt Anglen (B-Line Electric)",desc:"Refrigerator receptacle C.O.",cat:"Subcontractors",amount:125.00},
+  {date:"2026-02-14",vendor:"Bolt Anglen (B-Line Electric)",desc:"Trim Out",cat:"Subcontractors",amount:3910.00},
+  {date:"2025-11-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:962.90},
+  {date:"2025-11-12",vendor:"Building Solutions",desc:"OSB sheets",cat:"Supplies & Materials",amount:108.10},
+  {date:"2025-11-13",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:3650.53},
+  {date:"2025-11-13",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:267.84},
+  {date:"2025-11-13",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:10163.25},
+  {date:"2025-11-20",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:5886.67},
+  {date:"2025-11-20",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:3440.40},
+  {date:"2025-11-24",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:229.92},
+  {date:"2025-12-02",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:443.73},
+  {date:"2025-12-02",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:1711.71},
+  {date:"2025-12-02",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:617.84},
+  {date:"2025-12-02",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:337.47},
+  {date:"2025-12-03",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:90.80},
+  {date:"2025-12-04",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:15.15},
+  {date:"2025-12-04",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:245.63},
+  {date:"2025-12-09",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:3206.90},
+  {date:"2025-12-10",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:1096.77},
+  {date:"2025-12-10",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:2173.06},
+  {date:"2025-12-11",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:290.15},
+  {date:"2025-12-17",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:493.55},
+  {date:"2025-12-23",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-1568.21},
+  {date:"2025-12-23",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-183.26},
+  {date:"2026-01-05",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-121.29},
+  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:454.95},
+  {date:"2026-01-06",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-184.99},
+  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:1279.32},
+  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:63.17},
+  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:1139.29},
+  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:6605.11},
+  {date:"2026-01-08",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:49.38},
+  {date:"2026-01-26",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-645.65},
+  {date:"2026-01-28",vendor:"Building Solutions",desc:"Installation",cat:"Subcontractors",amount:2358.35},
+  {date:"2026-02-05",vendor:"Building Solutions",desc:"Credit",cat:"Supplies & Materials",amount:-12.97},
+  {date:"2026-02-05",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:126.08},
+  {date:"2026-01-15",vendor:"Burke Enterprises",desc:"Gutter & downspout install + painting",cat:"Subcontractors",amount:688.00},
+  {date:"2026-01-26",vendor:"Burke Enterprises",desc:"Gutter installation",cat:"Subcontractors",amount:450.00},
+  {date:"2026-01-01",vendor:"Cascade Disposal",desc:"Disposal services",cat:"Dump Fees",amount:893.21},
+  {date:"2026-02-11",vendor:"Cascade Heating",desc:"Supplies",cat:"Supplies & Materials",amount:20.00},
+  {date:"2025-12-02",vendor:"Cascade Quick Mix",desc:"Concrete materials",cat:"Supplies & Materials",amount:1648.00},
+  {date:"2025-11-06",vendor:"Central Oregon Builder",desc:"Supplies",cat:"Supplies & Materials",amount:112.00},
+  {date:"2025-09-13",vendor:"City of Bend",desc:"Permit fee",cat:"Building Permits & Fees",amount:41.71},
+  {date:"2025-09-13",vendor:"City of Bend",desc:"Building permit",cat:"Building Permits & Fees",amount:1245.03},
+  {date:"2025-12-03",vendor:"City of Bend",desc:"Permit fee",cat:"Building Permits & Fees",amount:6.96},
+  {date:"2025-12-03",vendor:"City of Bend",desc:"Permit center",cat:"Building Permits & Fees",amount:207.74},
+  {date:"2025-11-03",vendor:"Copper Craft Plumbing",desc:"Trenchless water main installation",cat:"Subcontractors",amount:6850.00},
+  {date:"2025-12-12",vendor:"Copper Craft Plumbing",desc:"Mechanical piping & rough-in",cat:"Subcontractors",amount:2750.00},
+  {date:"2025-12-12",vendor:"Copper Craft Plumbing",desc:"Rough-in, fixtures & trim",cat:"Subcontractors",amount:6250.00},
+  {date:"2026-02-05",vendor:"Copper Craft Plumbing",desc:"Plumbing work",cat:"Subcontractors",amount:2675.00},
+  {date:"2026-02-05",vendor:"Copper Craft Plumbing",desc:"Plumbing work",cat:"Subcontractors",amount:5000.00},
+  {date:"2025-11-25",vendor:"Cortes Contractors",desc:"Construction services",cat:"Cost of Labor",amount:2607.00},
+  {date:"2025-11-13",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:108.00},
+  {date:"2025-11-13",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:144.00},
+  {date:"2025-11-18",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:81.00},
+  {date:"2025-11-21",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:45.00},
+  {date:"2025-11-24",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:54.00},
+  {date:"2025-11-24",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:27.00},
+  {date:"2025-12-02",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:18.00},
+  {date:"2025-12-10",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:63.00},
+  {date:"2025-12-18",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:81.00},
+  {date:"2026-01-02",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:90.00},
+  {date:"2026-02-02",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:126.00},
+  {date:"2026-02-04",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:72.00},
+  {date:"2026-02-13",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:135.00},
+  {date:"2026-02-12",vendor:"Direct Flooring",desc:"Flooring materials",cat:"Supplies & Materials",amount:100.00},
+  {date:"2025-12-29",vendor:"Empire Drywall",desc:"Drywall services (50%)",cat:"Subcontractors",amount:5050.00},
+  {date:"2026-01-16",vendor:"Empire Drywall",desc:"Drywall install & finishing",cat:"Subcontractors",amount:5050.00},
+  {date:"2025-11-18",vendor:"Gold N Hands Construction",desc:"Roof demolition",cat:"Subcontractors",amount:3767.50},
+  {date:"2025-12-03",vendor:"Gold N Hands Construction",desc:"Construction work",cat:"Subcontractors",amount:10439.00},
+  {date:"2025-11-18",vendor:"High Standard Construction",desc:"Roof install (half down)",cat:"Subcontractors",amount:3750.00},
+  {date:"2025-12-09",vendor:"High Standard Construction",desc:"Roof 2nd payment",cat:"Subcontractors",amount:5350.00},
+  {date:"2026-01-19",vendor:"Integrity Construction Solutions",desc:"Door sizing & fitting",cat:"Subcontractors",amount:1180.00},
+  {date:"2025-04-17",vendor:"Jason Schreiber Design",desc:"Design retainer fee",cat:"Design & Engineering",amount:1800.00},
+  {date:"2025-04-30",vendor:"Jason Schreiber Design",desc:"Design services",cat:"Design & Engineering",amount:450.00},
+  {date:"2025-11-12",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:46.44},
+  {date:"2025-11-12",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:179.60},
+  {date:"2025-11-22",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:84.11},
+  {date:"2025-11-26",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:138.66},
+  {date:"2025-12-04",vendor:"Lowe's",desc:"Credit: return",cat:"Supplies & Materials",amount:-97.53},
+  {date:"2025-12-04",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:369.55},
+  {date:"2025-12-12",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:61.92},
+  {date:"2025-12-31",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:40.30},
+  {date:"2025-12-31",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:85.77},
+  {date:"2025-12-31",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:80.38},
+  {date:"2026-02-11",vendor:"Lowe's",desc:"Credit: return",cat:"Supplies & Materials",amount:-105.28},
+  {date:"2025-11-07",vendor:"Marco A Flores",desc:"Labor payment",cat:"Cost of Labor",amount:365.00},
+  {date:"2025-11-14",vendor:"Marco A Flores",desc:"Labor payment",cat:"Cost of Labor",amount:256.50},
+  {date:"2025-11-21",vendor:"Marco A Flores",desc:"Digging and rebar 6hr",cat:"Cost of Labor",amount:216.00},
+  {date:"2025-12-05",vendor:"Marco A Flores",desc:"Dec 3rd labor",cat:"Cost of Labor",amount:216.00},
+  {date:"2025-12-05",vendor:"Marco A Flores",desc:"Dec 4th labor",cat:"Cost of Labor",amount:135.00},
+  {date:"2025-12-05",vendor:"Marco A Flores",desc:"Nov 24 labor",cat:"Cost of Labor",amount:148.50},
+  {date:"2025-12-13",vendor:"Marco A Flores",desc:"Dec 11th labor",cat:"Cost of Labor",amount:189.00},
+  {date:"2025-12-19",vendor:"Marco A Flores",desc:"Dec 16 - 8 hours",cat:"Cost of Labor",amount:256.00},
+  {date:"2025-12-19",vendor:"Marco A Flores",desc:"Dec 18 - 8 hours",cat:"Cost of Labor",amount:256.00},
+  {date:"2025-12-19",vendor:"Marco A Flores",desc:"Dec 17 - 8 hours",cat:"Cost of Labor",amount:256.00},
+  {date:"2025-12-23",vendor:"Marco A Flores",desc:"Labor payment",cat:"Cost of Labor",amount:96.00},
+  {date:"2026-01-02",vendor:"Marco A Flores",desc:"Labor payment",cat:"Cost of Labor",amount:176.00},
+  {date:"2026-01-13",vendor:"Marco A Flores",desc:"Direct deposit",cat:"Cost of Labor",amount:736.00},
+  {date:"2026-01-27",vendor:"Marco A Flores",desc:"Direct deposit",cat:"Cost of Labor",amount:928.00},
+  {date:"2026-02-18",vendor:"Marco A Flores",desc:"Direct deposit",cat:"Cost of Labor",amount:400.00},
+  {date:"2026-02-20",vendor:"Marco A Flores",desc:"2.5 hrs",cat:"Cost of Labor",amount:80.00},
+  {date:"2025-12-18",vendor:"Orion Christopher Dawson",desc:"Venmo labor",cat:"Cost of Labor",amount:224.00},
+  {date:"2025-12-31",vendor:"Pacific Coast Glass",desc:"Insulated glass unit install",cat:"Subcontractors",amount:300.00},
+  {date:"2026-02-24",vendor:"Pacific Coast Glass",desc:"Bypassing doors install",cat:"Subcontractors",amount:995.00},
+  {date:"2026-02-12",vendor:"Parr Lumber",desc:"Door materials",cat:"Supplies & Materials",amount:53.50},
+  {date:"2026-02-13",vendor:"Parr Lumber",desc:"Credit: return",cat:"Supplies & Materials",amount:-32.06},
+  {date:"2026-02-13",vendor:"Parr Lumber",desc:"Lumber",cat:"Supplies & Materials",amount:69.09},
+  {date:"2025-12-30",vendor:"Performance Insulation",desc:"Insulation work",cat:"Subcontractors",amount:5700.00},
+  {date:"2025-11-21",vendor:"Quality Heating",desc:"System move & temp return air",cat:"Subcontractors",amount:3915.00},
+  {date:"2025-12-12",vendor:"Quality Heating",desc:"Ductwork installation C.O.",cat:"Subcontractors",amount:7504.00},
+  {date:"2026-02-05",vendor:"Quality Heating",desc:"Final billing",cat:"Subcontractors",amount:1300.00},
+  {date:"2026-02-12",vendor:"Rodda Paint",desc:"Paint",cat:"Supplies & Materials",amount:156.58},
+  {date:"2025-11-12",vendor:"Ron Mero",desc:"Venmo labor",cat:"Cost of Labor",amount:171.87},
+  {date:"2026-01-13",vendor:"Samuel Knowlton",desc:"Window & siding installation",cat:"Cost of Labor",amount:4750.00},
+  {date:"2025-11-08",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:26.45},
+  {date:"2025-11-12",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:134.55},
+  {date:"2025-11-13",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:19.98},
+  {date:"2025-11-22",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:659.34},
+  {date:"2025-11-25",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:631.93},
+  {date:"2025-11-26",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:28.78},
+  {date:"2025-12-03",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:137.88},
+  {date:"2025-12-03",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:360.00},
+  {date:"2025-12-06",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:456.77},
+  {date:"2025-12-08",vendor:"The Home Depot",desc:"Credit: return",cat:"Supplies & Materials",amount:-109.00},
+  {date:"2025-12-08",vendor:"The Home Depot",desc:"Credit: return",cat:"Supplies & Materials",amount:-60.08},
+  {date:"2025-12-13",vendor:"The Home Depot",desc:"Credit: return",cat:"Supplies & Materials",amount:-77.54},
+  {date:"2025-12-13",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:77.54},
+  {date:"2025-12-20",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:90.10},
+  {date:"2026-01-09",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:91.84},
+  {date:"2026-01-17",vendor:"The Home Depot",desc:"Materials (online)",cat:"Supplies & Materials",amount:103.89},
+  {date:"2026-02-04",vendor:"The Home Depot",desc:"Credit: return",cat:"Supplies & Materials",amount:-9.66},
+  {date:"2026-02-04",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:156.69},
+  {date:"2026-02-05",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:82.80},
+  {date:"2026-02-14",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:42.30},
+  {date:"2026-02-14",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:58.84},
+  {date:"2026-02-18",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:78.45},
+  {date:"2026-02-20",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:44.79},
+  {date:"2026-02-05",vendor:"Vazquez Painting",desc:"Painting services",cat:"Subcontractors",amount:2500.00},
+  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 15 - 4.75 hrs",cat:"Cost of Labor",amount:153.18},
+  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 14 - 6.75 hrs",cat:"Cost of Labor",amount:217.68},
+  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 16 - 5.5 hrs",cat:"Cost of Labor",amount:177.37},
+  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Bonus",cat:"Cost of Labor",amount:119.96},
+  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 13 - 8 hrs",cat:"Cost of Labor",amount:258.00},
+  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 12 - 7.25 hrs",cat:"Cost of Labor",amount:233.81},
+  {date:"2026-02-09",vendor:"Venmo Payment (labor)",desc:"Venmo payment",cat:"Cost of Labor",amount:1207.50},
+  {date:"2026-02-09",vendor:"Venmo Payment (materials)",desc:"Venmo payment",cat:"Supplies & Materials",amount:80.00},
+  {date:"2025-12-30",vendor:"View Rail",desc:"Stair supplies",cat:"Supplies & Materials",amount:3947.28},
+  {date:"2026-02-05",vendor:"View Rail",desc:"Stair supplies",cat:"Supplies & Materials",amount:10.56},
+  {date:"2025-11-24",vendor:"Wallace Pulley",desc:"Venmo labor",cat:"Cost of Labor",amount:707.67},
+  {date:"2025-12-08",vendor:"Wallace Pulley",desc:"7.25 hrs x $35",cat:"Cost of Labor",amount:253.75},
+  {date:"2025-12-15",vendor:"Wallace Pulley",desc:"Venmo labor",cat:"Cost of Labor",amount:192.50},
+  {date:"2025-12-15",vendor:"Wallace Pulley",desc:"Supplies",cat:"Supplies & Materials",amount:9.99},
+  {date:"2025-12-22",vendor:"Wallace Pulley",desc:"5.5 hrs x $35",cat:"Cost of Labor",amount:192.50},
+  {date:"2025-12-24",vendor:"Wallace Pulley",desc:"Venmo labor",cat:"Cost of Labor",amount:372.00},
+  {date:"2026-01-20",vendor:"Wallace Pulley",desc:"22.5 hours",cat:"Cost of Labor",amount:787.50},
+  {date:"2026-02-03",vendor:"Wallace Pulley",desc:"Supplies",cat:"Supplies & Materials",amount:80.00},
+  {date:"2026-02-17",vendor:"Wallace Pulley",desc:"26.5 hrs",cat:"Cost of Labor",amount:927.50},
+  {date:"2025-12-09",vendor:"WCC Portable Restrooms",desc:"Porta potty rental",cat:"Porta Potties",amount:390.40},
+  {date:"2026-01-01",vendor:"WCC Portable Restrooms",desc:"Porta potty rental",cat:"Porta Potties",amount:163.50},
+  {date:"2026-02-01",vendor:"WCC Portable Restrooms",desc:"Porta potty rental",cat:"Porta Potties",amount:163.50}
+];
+
+const INCOME_TRANSACTIONS = [
+  {date:"2025-04-14",num:"1023",desc:"60% upfront payment — Design Services",cat:"Design Services",amount:5100.00},
+  {date:"2025-08-27",num:"1081",desc:"40% Design Services",cat:"Design Services",amount:3400.00},
+  {date:"2025-09-15",num:"1085",desc:"City of Bend Building Permit",cat:"Permit",amount:1286.74},
+  {date:"2025-11-03",num:"1108",desc:"Project Start (25% of Project total)",cat:"Phase Payment",amount:59297.00},
+  {date:"2025-11-19",num:"1115",desc:"CO: Skylights Added (4 x 2ft each) x 3",cat:"Change Order",amount:4500.00},
+  {date:"2025-11-24",num:"1118",desc:"CO #2: Fixed window added",cat:"Change Order",amount:1350.00},
+  {date:"2025-12-03",num:"1123",desc:"PHASE 2 Project Payment",cat:"Phase Payment",amount:59297.00},
+  {date:"2025-12-05",num:"JE-5",desc:"Unearned Revenue adjustment (Sara Wilson)",cat:"Journal Entry",amount:-59297.00},
+  {date:"2025-12-19",num:"1126",desc:"CO #3: Railing — hallway + deck",cat:"Change Order",amount:2080.00},
+  {date:"2025-12-19",num:"1127",desc:"CO #4: Hot Tub/Sauna Wiring & Plug",cat:"Change Order",amount:1500.00},
+  {date:"2025-12-19",num:"JE-11",desc:"Recognizing Income for Dec",cat:"Journal Entry",amount:59297.00},
+  {date:"2026-01-02",num:"1131",desc:"CO #5: Adding Outlet to Garage",cat:"Change Order",amount:175.00},
+  {date:"2026-01-03",num:"1132",desc:"Phase 3 Payment",cat:"Phase Payment",amount:59297.00},
+  {date:"2026-01-19",num:"1136",desc:"CO #6: Door slab prep & install",cat:"Change Order",amount:2600.00},
+  {date:"2026-01-26",num:"1138",desc:"Interior Painting",cat:"Phase Payment",amount:3300.00},
+  {date:"2026-02-03",num:"1142",desc:"PHASE 4 Project Payment",cat:"Phase Payment",amount:35578.00},
+  {date:"2026-02-20",num:"1146",desc:"Final Payment",cat:"Phase Payment",amount:23718.80},
+  {date:"2026-02-20",num:"1146",desc:"CO: Exterior outlet on deck",cat:"Change Order",amount:200.00},
+  {date:"2026-02-20",num:"1146",desc:"CO: Stair skirt & railing trim",cat:"Change Order",amount:150.00}
+];
+
+let currentTxnView = 'expenses';
+
+function switchTxnView(view) {
+  currentTxnView = view;
+  document.querySelectorAll('.txn-toggle-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  populateTxnFilters();
+  renderTransactions();
+}
+
+function populateTxnFilters() {
+  const data = currentTxnView === 'expenses' ? EXPENSE_TRANSACTIONS : INCOME_TRANSACTIONS;
+  const vendorSelect = document.getElementById('txn-vendor-filter');
+  const catSelect = document.getElementById('txn-category-filter');
+
+  const vendors = [...new Set(data.map(t => t.vendor))].sort();
+  const cats = [...new Set(data.map(t => t.cat))].sort();
+
+  vendorSelect.innerHTML = '<option value="all">All Vendors</option>' +
+    vendors.map(v => `<option value="${v}">${v}</option>`).join('');
+
+  catSelect.innerHTML = '<option value="all">All Categories</option>' +
+    cats.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  if (currentTxnView === 'income') {
+    vendorSelect.style.display = 'none';
+  } else {
+    vendorSelect.style.display = '';
+  }
+}
+
+function renderTransactions() {
+  const data = currentTxnView === 'expenses' ? EXPENSE_TRANSACTIONS : INCOME_TRANSACTIONS;
+  const vendorFilter = document.getElementById('txn-vendor-filter').value;
+  const catFilter = document.getElementById('txn-category-filter').value;
+  const search = document.getElementById('txn-search').value.toLowerCase();
+
+  let filtered = data.filter(t => {
+    if (vendorFilter !== 'all' && t.vendor !== vendorFilter) return false;
+    if (catFilter !== 'all' && t.cat !== catFilter) return false;
+    if (search && !t.desc.toLowerCase().includes(search) && !t.vendor?.toLowerCase().includes(search) && !t.date.includes(search)) return false;
+    return true;
+  });
+
+  // Sort by date
+  filtered.sort((a, b) => a.date.localeCompare(b.date));
+
+  // Summary cards
+  const totalPositive = filtered.filter(t => t.amount > 0).reduce((s, t) => s + t.amount, 0);
+  const totalNegative = filtered.filter(t => t.amount < 0).reduce((s, t) => s + t.amount, 0);
+  const netTotal = totalPositive + totalNegative;
+  const txnCount = filtered.length;
+
+  const summaryEl = document.getElementById('txn-summary');
+  summaryEl.innerHTML = `
+    <div class="txn-summary-card">
+      <div class="txn-summary-label">Transactions</div>
+      <div class="txn-summary-value">${txnCount}</div>
+    </div>
+    <div class="txn-summary-card">
+      <div class="txn-summary-label">${currentTxnView === 'expenses' ? 'Total Spend' : 'Total Income'}</div>
+      <div class="txn-summary-value ${currentTxnView === 'expenses' ? 'red' : 'green'}">${fmt(totalPositive)}</div>
+    </div>
+    ${totalNegative < 0 ? `<div class="txn-summary-card">
+      <div class="txn-summary-label">Credits / Returns</div>
+      <div class="txn-summary-value green">${fmt(Math.abs(totalNegative))}</div>
+    </div>` : ''}
+    <div class="txn-summary-card">
+      <div class="txn-summary-label">Net Total</div>
+      <div class="txn-summary-value">${fmt(netTotal)}</div>
+    </div>
+  `;
+
+  // Vendor bars (expenses only)
+  const barsEl = document.getElementById('vendor-bars');
+  if (currentTxnView === 'expenses') {
+    barsEl.parentElement.style.display = '';
+    const vendorTotals = {};
+    filtered.forEach(t => {
+      vendorTotals[t.vendor] = (vendorTotals[t.vendor] || 0) + t.amount;
+    });
+    const sorted = Object.entries(vendorTotals).sort((a, b) => b[1] - a[1]).slice(0, 15);
+    const maxVendor = Math.max(...sorted.map(([, v]) => Math.abs(v)));
+
+    barsEl.innerHTML = sorted.map(([name, total]) => {
+      const w = (Math.abs(total) / maxVendor * 100).toFixed(1);
+      const color = total < 0 ? 'background:linear-gradient(90deg,#10B981,#34D399)' : '';
+      return `<div class="vendor-bar-row">
+        <div class="vendor-bar-name" title="${name}">${name}</div>
+        <div style="flex:1"><div class="vendor-bar-fill" style="width:${w}%;${color}">${fmt(total)}</div></div>
+      </div>`;
+    }).join('');
+  } else {
+    barsEl.parentElement.style.display = 'none';
+  }
+
+  // Table
+  const wrapper = document.getElementById('txn-table-wrapper');
+  const isIncome = currentTxnView === 'income';
+
+  let rows = filtered.map(t => {
+    const dateStr = new Date(t.date + 'T00:00:00').toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+    const amtClass = t.amount < 0 ? 'green' : (isIncome ? 'green' : '');
+    return `<tr>
+      <td>${dateStr}</td>
+      ${!isIncome ? `<td style="text-align:left">${t.vendor}</td>` : ''}
+      <td style="text-align:left">${t.desc}</td>
+      <td style="text-align:left"><span style="font-size:11px;color:#94A3B8">${t.cat}</span></td>
+      ${isIncome && t.num ? `<td class="mono">${t.num}</td>` : ''}
+      <td class="mono ${amtClass}">${t.amount < 0 ? '-' : ''}${fmt(Math.abs(t.amount))}</td>
+    </tr>`;
+  }).join('');
+
+  wrapper.innerHTML = `<table>
+    <thead><tr>
+      <th>Date</th>
+      ${!isIncome ? '<th style="text-align:left">Vendor</th>' : ''}
+      <th style="text-align:left">Description</th>
+      <th style="text-align:left">Category</th>
+      ${isIncome ? '<th>Invoice #</th>' : ''}
+      <th>Amount</th>
+    </tr></thead>
+    <tbody>${rows}
+    <tr class="totals-row">
+      <td>TOTAL</td>
+      ${!isIncome ? '<td></td>' : ''}
+      <td style="text-align:left">${txnCount} transactions</td>
+      <td></td>
+      ${isIncome ? '<td></td>' : ''}
+      <td class="mono">${fmt(netTotal)}</td>
+    </tr></tbody>
+  </table>`;
+}
+
+function initTransactions() {
+  populateTxnFilters();
+  renderTransactions();
+}
+
 // ============ INIT ============
 function updateKPIs() {
   // Update KPI cards with live data
@@ -904,6 +1362,7 @@ async function init() {
     renderCostTable();
     updateSqft();
     renderOverhead();
+    initTransactions();
     // Show last synced timestamp
     const syncEl = document.getElementById('last-synced');
     if (syncEl) syncEl.textContent = '✅ Last synced: ' + new Date().toLocaleString();
