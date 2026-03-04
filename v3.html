@@ -424,7 +424,10 @@ tbody tr.totals-row {
     <div class="header-sub">GQS Budget Analysis — Project In Progress <span class="finalized-count" id="finalized-badge">Loading...</span></div>
     <div id="last-synced" style="font-size:11px;color:#4B5563;margin-top:4px;"></div>
   </div>
-  <button class="download-btn" onclick="downloadExcel()">📥 Export Excel</button>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="gqs_logo.png" alt="GQS" style="height:44px;border-radius:6px;" onerror="this.style.display='none'">
+    <button class="download-btn" onclick="downloadExcel()">📥 Export Excel</button>
+  </div>
 </div>
 
 <div class="tab-bar">
@@ -586,37 +589,35 @@ async function loadFromSheet() {
 
   const rows = parseCSV(csvText);
 
-  // Build SUMMARY from rows 3-7 (0-indexed: 2-6)
-  const contractValue = parseCurrency((rows[2] || [])[1]) || 0;
-  const totalEstimated = parseCurrency((rows[3] || [])[1]) || 0;
-  const totalActualCost = parseCurrency((rows[4] || [])[1]) || 0;
-  const projectedProfit = parseCurrency((rows[5] || [])[1]) || 0;
-  const projectedMargin = parseCurrency((rows[6] || [])[1]) || 0;
+  // Build SUMMARY from rows 2-7 (0-indexed: 1-7)
+  // Summary values are in column D (index 3)
+  const contractValue = parseCurrency((rows[1] || [])[3]) || 0;
+  const totalBidsVal = parseCurrency((rows[2] || [])[3]) || 0;
+  const totalActualCost = parseCurrency((rows[3] || [])[3]) || 0;
+  const totalVariance = parseCurrency((rows[4] || [])[3]) || 0;
+  const projectedProfit = parseCurrency((rows[5] || [])[3]) || 0;
+  const projectedMargin = parseCurrency((rows[6] || [])[3]) || 0;
 
   SUMMARY = {
     contractValue,
-    totalBids: 0, // will compute from categories
+    totalBids: totalBidsVal,
     totalActual: totalActualCost,
     projectedProfit,
     projectedMargin
   };
 
-  // Parse category rows (rows 10-35, 0-indexed 9-34)
-  // Row 9 (0-indexed 8) is header row
+  // Parse category rows: row 7 (0-indexed) is header "Cost Category", data starts at row 8
   categories = [];
-  let totalBidsCalc = 0;
-  for (let i = 9; i <= Math.min(34, rows.length - 1); i++) {
+  for (let i = 8; i < rows.length; i++) {
     const r = rows[i];
-    if (!r || !r[0] || r[0].trim() === '' || r[0].trim().toUpperCase() === 'ADD-ON' || r[0].trim().toUpperCase() === 'TOTAL') continue;
+    if (!r || !r[0] || r[0].trim() === '' || r[0].trim().toUpperCase() === 'TOTAL') continue;
     const name = r[0].trim();
     const est = parseCurrency(r[1]);
     const bid = parseCurrency(r[2]);
     const actual = parseCurrency(r[3]);
-    if (est === null && bid === null && actual === null) continue; // skip fully empty rows
+    if (est === null && bid === null && actual === null) continue;
     categories.push({ name, est: est || 0, bid, actual });
-    if (bid !== null) totalBidsCalc += bid;
   }
-  SUMMARY.totalBids = totalBidsCalc;
 
   finalized = categories.filter(c => c.actual !== null).length;
   totalCats = categories.length;
