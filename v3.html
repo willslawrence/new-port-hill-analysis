@@ -1237,33 +1237,47 @@ async function loadTransactionsFromSheet() {
       const rows = parseCSV(text);
       if (rows.length < 2) continue;
       // Header: Date, Vendor, Description, Category, Amount
-      const data = [];
+      // Income rows have Category starting with "Income:"
+      const expenses = [];
+      const income = [];
       for (let i = 1; i < rows.length; i++) {
         const r = rows[i];
         if (!r[0] || r.length < 5) continue;
         const amount = parseFloat(String(r[4]).replace(/[$,]/g, ''));
         if (isNaN(amount)) continue;
-        data.push({
+        const cat = String(r[3]).trim();
+        const entry = {
           date: String(r[0]).trim(),
           vendor: String(r[1]).trim(),
           desc: String(r[2]).trim(),
-          cat: String(r[3]).trim(),
+          cat: cat.replace(/^Income:\s*/i, ''),
           amount: amount
-        });
+        };
+        if (cat.toLowerCase().startsWith('income:')) {
+          // Extract invoice number from vendor field like "Sara Wilson (Invoice 1023)"
+          const numMatch = entry.vendor.match(/\((?:Invoice\s+)?([^)]+)\)/i);
+          if (numMatch) entry.num = numMatch[1];
+          income.push(entry);
+        } else {
+          expenses.push(entry);
+        }
       }
-      if (data.length > 0) {
-        EXPENSE_TRANSACTIONS = data;
-        console.log(`Loaded ${data.length} transactions from Google Sheets`);
+      if (expenses.length > 0 || income.length > 0) {
+        EXPENSE_TRANSACTIONS = expenses;
+        if (income.length > 0) INCOME_TRANSACTIONS = income;
+        console.log(`Loaded ${expenses.length} expenses + ${income.length} income from Google Sheets`);
         return;
       }
     } catch(e) { console.warn('TXN fetch failed:', e); }
   }
   // Fallback to hardcoded data
   EXPENSE_TRANSACTIONS = EXPENSE_TRANSACTIONS_FALLBACK;
+  INCOME_TRANSACTIONS = INCOME_TRANSACTIONS_FALLBACK;
   console.log('Using fallback transaction data');
 }
 
-const INCOME_TRANSACTIONS = [
+let INCOME_TRANSACTIONS = [];
+const INCOME_TRANSACTIONS_FALLBACK = [
   {date:"2025-04-14",num:"1023",desc:"60% upfront payment — Design Services",cat:"Design Services",amount:5100.00},
   {date:"2025-08-27",num:"1081",desc:"40% Design Services",cat:"Design Services",amount:3400.00},
   {date:"2025-09-15",num:"1085",desc:"City of Bend Building Permit",cat:"Permit",amount:1286.74},
