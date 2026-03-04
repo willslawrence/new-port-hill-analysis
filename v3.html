@@ -432,6 +432,60 @@ tbody tr.totals-row {
   margin-left: 8px;
 }
 
+/* Mobile responsive */
+@media (max-width: 768px) {
+  body { padding: 12px; }
+  .header-title { font-size: 20px; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .kpi-value { font-size: 18px; }
+  .tab-bar { overflow-x: auto; width: 100%; }
+  .tab-btn { padding: 8px 14px; font-size: 12px; white-space: nowrap; }
+
+  /* Chart: stack label above bars */
+  .chart-bar-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+  .chart-label {
+    width: 100%;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #E2E8F0;
+  }
+  .chart-bars { width: 100%; }
+  .chart-bar {
+    height: 24px;
+    font-size: 11px;
+    min-width: 40px;
+  }
+  .chart-amount { display: none; }
+  .chart-legend { padding-left: 0; justify-content: flex-start; }
+
+  /* Sub cards */
+  .sub-grid { grid-template-columns: 1fr; }
+
+  /* Overhead */
+  .overhead-scenarios { grid-template-columns: 1fr; }
+
+  /* Tables */
+  .table-wrapper { font-size: 11px; }
+  table { font-size: 11px; }
+  thead th { padding: 8px 6px; font-size: 10px; }
+  tbody td { padding: 6px; }
+
+  /* Sqft */
+  .sqft-cards { grid-template-columns: repeat(2, 1fr); }
+
+  /* Transactions */
+  .txn-controls { flex-direction: column; gap: 8px; }
+  .txn-controls select, .txn-controls input { width: 100%; }
+  .txn-summary-grid { grid-template-columns: repeat(2, 1fr); }
+  .vendor-bar-name { width: 120px; font-size: 11px; }
+}
+
 /* Transactions tab */
 .txn-controls {
   display: flex;
