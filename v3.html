@@ -569,6 +569,7 @@ tbody tr.totals-row {
   position: relative;
   min-width: 2px;
   transition: width 0.4s ease;
+  overflow: visible;
 }
 .vendor-bar-fill .vb-label {
   position: absolute;
@@ -1197,7 +1198,7 @@ function renderTransactions() {
       const color = total < 0 ? 'background:linear-gradient(90deg,#10B981,#34D399)' : '';
       return `<div class="vendor-bar-row">
         <div class="vendor-bar-name" title="${name}">${name}</div>
-        <div style="flex:1;position:relative"><div class="vendor-bar-fill" style="width:${w}%;${color}"><span class="vb-label">${fmt(total)}</span></div></div>
+        <div style="flex:1;position:relative;overflow:visible"><div class="vendor-bar-fill" style="width:${w}%;${color}"><span class="vb-label">${fmt(total)}</span></div></div>
       </div>`;
     }).join('');
   } else {
