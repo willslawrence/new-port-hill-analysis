@@ -1049,180 +1049,12 @@ function downloadExcel() {
 }
 
 // ============ TRANSACTIONS DATA ============
-// Expenses loaded dynamically from Google Sheets; income hardcoded (separate source PDF)
+// Expenses and income loaded dynamically from Google Sheets Transactions tab
 let EXPENSE_TRANSACTIONS = [];
+let INCOME_TRANSACTIONS = [];
 
-const EXPENSE_TRANSACTIONS_FALLBACK = [
-  {date:"2025-12-03",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:129.99},
-  {date:"2025-12-18",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:59.88},
-  {date:"2026-01-29",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:23.97},
-  {date:"2026-02-19",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:36.99},
-  {date:"2026-02-21",vendor:"Alpha Window Cleaning",desc:"Window cleaning",cat:"Subcontractors",amount:400.00},
-  {date:"2026-02-18",vendor:"Amanda Ring",desc:"Venmo payment",cat:"Cost of Labor",amount:120.00},
-  {date:"2025-07-23",vendor:"Banton Engineering",desc:"Engineering services",cat:"Design & Engineering",amount:1800.00},
-  {date:"2025-12-14",vendor:"Bolt Anglen (B-Line Electric)",desc:"Addition Rough-in",cat:"Subcontractors",amount:3910.00},
-  {date:"2026-01-02",vendor:"Bolt Anglen (B-Line Electric)",desc:"Refrigerator receptacle C.O.",cat:"Subcontractors",amount:125.00},
-  {date:"2026-02-14",vendor:"Bolt Anglen (B-Line Electric)",desc:"Trim Out",cat:"Subcontractors",amount:3910.00},
-  {date:"2025-11-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:962.90},
-  {date:"2025-11-12",vendor:"Building Solutions",desc:"OSB sheets",cat:"Supplies & Materials",amount:108.10},
-  {date:"2025-11-13",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:3650.53},
-  {date:"2025-11-13",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:267.84},
-  {date:"2025-11-13",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:10163.25},
-  {date:"2025-11-20",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:5886.67},
-  {date:"2025-11-20",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:3440.40},
-  {date:"2025-11-24",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:229.92},
-  {date:"2025-12-02",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:443.73},
-  {date:"2025-12-02",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:1711.71},
-  {date:"2025-12-02",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:617.84},
-  {date:"2025-12-02",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:337.47},
-  {date:"2025-12-03",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:90.80},
-  {date:"2025-12-04",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:15.15},
-  {date:"2025-12-04",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:245.63},
-  {date:"2025-12-09",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:3206.90},
-  {date:"2025-12-10",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:1096.77},
-  {date:"2025-12-10",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:2173.06},
-  {date:"2025-12-11",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:290.15},
-  {date:"2025-12-17",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:493.55},
-  {date:"2025-12-23",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-1568.21},
-  {date:"2025-12-23",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-183.26},
-  {date:"2026-01-05",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-121.29},
-  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:454.95},
-  {date:"2026-01-06",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-184.99},
-  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:1279.32},
-  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:63.17},
-  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:1139.29},
-  {date:"2026-01-06",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:6605.11},
-  {date:"2026-01-08",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:49.38},
-  {date:"2026-01-26",vendor:"Building Solutions",desc:"Credit: DID NOT NEED",cat:"Supplies & Materials",amount:-645.65},
-  {date:"2026-01-28",vendor:"Building Solutions",desc:"Installation",cat:"Subcontractors",amount:2358.35},
-  {date:"2026-02-05",vendor:"Building Solutions",desc:"Credit",cat:"Supplies & Materials",amount:-12.97},
-  {date:"2026-02-05",vendor:"Building Solutions",desc:"Materials",cat:"Supplies & Materials",amount:126.08},
-  {date:"2026-01-15",vendor:"Burke Enterprises",desc:"Gutter & downspout install + painting",cat:"Subcontractors",amount:688.00},
-  {date:"2026-01-26",vendor:"Burke Enterprises",desc:"Gutter installation",cat:"Subcontractors",amount:450.00},
-  {date:"2026-01-01",vendor:"Cascade Disposal",desc:"Disposal services",cat:"Dump Fees",amount:893.21},
-  {date:"2026-02-11",vendor:"Cascade Heating",desc:"Supplies",cat:"Supplies & Materials",amount:20.00},
-  {date:"2025-12-02",vendor:"Cascade Quick Mix",desc:"Concrete materials",cat:"Supplies & Materials",amount:1648.00},
-  {date:"2025-11-06",vendor:"Central Oregon Builder",desc:"Supplies",cat:"Supplies & Materials",amount:112.00},
-  {date:"2025-09-13",vendor:"City of Bend",desc:"Permit fee",cat:"Building Permits & Fees",amount:41.71},
-  {date:"2025-09-13",vendor:"City of Bend",desc:"Building permit",cat:"Building Permits & Fees",amount:1245.03},
-  {date:"2025-12-03",vendor:"City of Bend",desc:"Permit fee",cat:"Building Permits & Fees",amount:6.96},
-  {date:"2025-12-03",vendor:"City of Bend",desc:"Permit center",cat:"Building Permits & Fees",amount:207.74},
-  {date:"2025-11-03",vendor:"Copper Craft Plumbing",desc:"Trenchless water main installation",cat:"Subcontractors",amount:6850.00},
-  {date:"2025-12-12",vendor:"Copper Craft Plumbing",desc:"Mechanical piping & rough-in",cat:"Subcontractors",amount:2750.00},
-  {date:"2025-12-12",vendor:"Copper Craft Plumbing",desc:"Rough-in, fixtures & trim",cat:"Subcontractors",amount:6250.00},
-  {date:"2026-02-05",vendor:"Copper Craft Plumbing",desc:"Plumbing work",cat:"Subcontractors",amount:2675.00},
-  {date:"2026-02-05",vendor:"Copper Craft Plumbing",desc:"Plumbing work",cat:"Subcontractors",amount:5000.00},
-  {date:"2025-11-25",vendor:"Cortes Contractors",desc:"Construction services",cat:"Cost of Labor",amount:2607.00},
-  {date:"2025-11-13",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:108.00},
-  {date:"2025-11-13",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:144.00},
-  {date:"2025-11-18",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:81.00},
-  {date:"2025-11-21",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:45.00},
-  {date:"2025-11-24",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:54.00},
-  {date:"2025-11-24",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:27.00},
-  {date:"2025-12-02",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:18.00},
-  {date:"2025-12-10",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:63.00},
-  {date:"2025-12-18",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:81.00},
-  {date:"2026-01-02",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:90.00},
-  {date:"2026-02-02",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:126.00},
-  {date:"2026-02-04",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:72.00},
-  {date:"2026-02-13",vendor:"Deschutes County Solid Waste",desc:"Dump fee",cat:"Dump Fees",amount:135.00},
-  {date:"2026-02-12",vendor:"Direct Flooring",desc:"Flooring materials",cat:"Supplies & Materials",amount:100.00},
-  {date:"2025-12-29",vendor:"Empire Drywall",desc:"Drywall services (50%)",cat:"Subcontractors",amount:5050.00},
-  {date:"2026-01-16",vendor:"Empire Drywall",desc:"Drywall install & finishing",cat:"Subcontractors",amount:5050.00},
-  {date:"2025-11-18",vendor:"Gold N Hands Construction",desc:"Roof demolition",cat:"Subcontractors",amount:3767.50},
-  {date:"2025-12-03",vendor:"Gold N Hands Construction",desc:"Construction work",cat:"Subcontractors",amount:10439.00},
-  {date:"2025-11-18",vendor:"High Standard Construction",desc:"Roof install (half down)",cat:"Subcontractors",amount:3750.00},
-  {date:"2025-12-09",vendor:"High Standard Construction",desc:"Roof 2nd payment",cat:"Subcontractors",amount:5350.00},
-  {date:"2026-01-19",vendor:"Integrity Construction Solutions",desc:"Door sizing & fitting",cat:"Subcontractors",amount:1180.00},
-  {date:"2025-04-17",vendor:"Jason Schreiber Design",desc:"Design retainer fee",cat:"Design & Engineering",amount:1800.00},
-  {date:"2025-04-30",vendor:"Jason Schreiber Design",desc:"Design services",cat:"Design & Engineering",amount:450.00},
-  {date:"2025-11-12",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:46.44},
-  {date:"2025-11-12",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:179.60},
-  {date:"2025-11-22",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:84.11},
-  {date:"2025-11-26",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:138.66},
-  {date:"2025-12-04",vendor:"Lowe's",desc:"Credit: return",cat:"Supplies & Materials",amount:-97.53},
-  {date:"2025-12-04",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:369.55},
-  {date:"2025-12-12",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:61.92},
-  {date:"2025-12-31",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:40.30},
-  {date:"2025-12-31",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:85.77},
-  {date:"2025-12-31",vendor:"Lowe's",desc:"Materials",cat:"Supplies & Materials",amount:80.38},
-  {date:"2026-02-11",vendor:"Lowe's",desc:"Credit: return",cat:"Supplies & Materials",amount:-105.28},
-  {date:"2025-11-07",vendor:"Marco A Flores",desc:"Labor payment",cat:"Cost of Labor",amount:365.00},
-  {date:"2025-11-14",vendor:"Marco A Flores",desc:"Labor payment",cat:"Cost of Labor",amount:256.50},
-  {date:"2025-11-21",vendor:"Marco A Flores",desc:"Digging and rebar 6hr",cat:"Cost of Labor",amount:216.00},
-  {date:"2025-12-05",vendor:"Marco A Flores",desc:"Dec 3rd labor",cat:"Cost of Labor",amount:216.00},
-  {date:"2025-12-05",vendor:"Marco A Flores",desc:"Dec 4th labor",cat:"Cost of Labor",amount:135.00},
-  {date:"2025-12-05",vendor:"Marco A Flores",desc:"Nov 24 labor",cat:"Cost of Labor",amount:148.50},
-  {date:"2025-12-13",vendor:"Marco A Flores",desc:"Dec 11th labor",cat:"Cost of Labor",amount:189.00},
-  {date:"2025-12-19",vendor:"Marco A Flores",desc:"Dec 16 - 8 hours",cat:"Cost of Labor",amount:256.00},
-  {date:"2025-12-19",vendor:"Marco A Flores",desc:"Dec 18 - 8 hours",cat:"Cost of Labor",amount:256.00},
-  {date:"2025-12-19",vendor:"Marco A Flores",desc:"Dec 17 - 8 hours",cat:"Cost of Labor",amount:256.00},
-  {date:"2025-12-23",vendor:"Marco A Flores",desc:"Labor payment",cat:"Cost of Labor",amount:96.00},
-  {date:"2026-01-02",vendor:"Marco A Flores",desc:"Labor payment",cat:"Cost of Labor",amount:176.00},
-  {date:"2026-01-13",vendor:"Marco A Flores",desc:"Direct deposit",cat:"Cost of Labor",amount:736.00},
-  {date:"2026-01-27",vendor:"Marco A Flores",desc:"Direct deposit",cat:"Cost of Labor",amount:928.00},
-  {date:"2026-02-18",vendor:"Marco A Flores",desc:"Direct deposit",cat:"Cost of Labor",amount:400.00},
-  {date:"2026-02-20",vendor:"Marco A Flores",desc:"2.5 hrs",cat:"Cost of Labor",amount:80.00},
-  {date:"2025-12-18",vendor:"Orion Christopher Dawson",desc:"Venmo labor",cat:"Cost of Labor",amount:224.00},
-  {date:"2025-12-31",vendor:"Pacific Coast Glass",desc:"Insulated glass unit install",cat:"Subcontractors",amount:300.00},
-  {date:"2026-02-24",vendor:"Pacific Coast Glass",desc:"Bypassing doors install",cat:"Subcontractors",amount:995.00},
-  {date:"2026-02-12",vendor:"Parr Lumber",desc:"Door materials",cat:"Supplies & Materials",amount:53.50},
-  {date:"2026-02-13",vendor:"Parr Lumber",desc:"Credit: return",cat:"Supplies & Materials",amount:-32.06},
-  {date:"2026-02-13",vendor:"Parr Lumber",desc:"Lumber",cat:"Supplies & Materials",amount:69.09},
-  {date:"2025-12-30",vendor:"Performance Insulation",desc:"Insulation work",cat:"Subcontractors",amount:5700.00},
-  {date:"2025-11-21",vendor:"Quality Heating",desc:"System move & temp return air",cat:"Subcontractors",amount:3915.00},
-  {date:"2025-12-12",vendor:"Quality Heating",desc:"Ductwork installation C.O.",cat:"Subcontractors",amount:7504.00},
-  {date:"2026-02-05",vendor:"Quality Heating",desc:"Final billing",cat:"Subcontractors",amount:1300.00},
-  {date:"2026-02-12",vendor:"Rodda Paint",desc:"Paint",cat:"Supplies & Materials",amount:156.58},
-  {date:"2025-11-12",vendor:"Ron Mero",desc:"Venmo labor",cat:"Cost of Labor",amount:171.87},
-  {date:"2026-01-13",vendor:"Samuel Knowlton",desc:"Window & siding installation",cat:"Cost of Labor",amount:4750.00},
-  {date:"2025-11-08",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:26.45},
-  {date:"2025-11-12",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:134.55},
-  {date:"2025-11-13",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:19.98},
-  {date:"2025-11-22",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:659.34},
-  {date:"2025-11-25",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:631.93},
-  {date:"2025-11-26",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:28.78},
-  {date:"2025-12-03",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:137.88},
-  {date:"2025-12-03",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:360.00},
-  {date:"2025-12-06",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:456.77},
-  {date:"2025-12-08",vendor:"The Home Depot",desc:"Credit: return",cat:"Supplies & Materials",amount:-109.00},
-  {date:"2025-12-08",vendor:"The Home Depot",desc:"Credit: return",cat:"Supplies & Materials",amount:-60.08},
-  {date:"2025-12-13",vendor:"The Home Depot",desc:"Credit: return",cat:"Supplies & Materials",amount:-77.54},
-  {date:"2025-12-13",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:77.54},
-  {date:"2025-12-20",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:90.10},
-  {date:"2026-01-09",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:91.84},
-  {date:"2026-01-17",vendor:"The Home Depot",desc:"Materials (online)",cat:"Supplies & Materials",amount:103.89},
-  {date:"2026-02-04",vendor:"The Home Depot",desc:"Credit: return",cat:"Supplies & Materials",amount:-9.66},
-  {date:"2026-02-04",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:156.69},
-  {date:"2026-02-05",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:82.80},
-  {date:"2026-02-14",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:42.30},
-  {date:"2026-02-14",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:58.84},
-  {date:"2026-02-18",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:78.45},
-  {date:"2026-02-20",vendor:"The Home Depot",desc:"Materials",cat:"Supplies & Materials",amount:44.79},
-  {date:"2026-02-05",vendor:"Vazquez Painting",desc:"Painting services",cat:"Subcontractors",amount:2500.00},
-  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 15 - 4.75 hrs",cat:"Cost of Labor",amount:153.18},
-  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 14 - 6.75 hrs",cat:"Cost of Labor",amount:217.68},
-  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 16 - 5.5 hrs",cat:"Cost of Labor",amount:177.37},
-  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Bonus",cat:"Cost of Labor",amount:119.96},
-  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 13 - 8 hrs",cat:"Cost of Labor",amount:258.00},
-  {date:"2026-01-12",vendor:"Venmo Payment (labor)",desc:"Jan 12 - 7.25 hrs",cat:"Cost of Labor",amount:233.81},
-  {date:"2026-02-09",vendor:"Venmo Payment (labor)",desc:"Venmo payment",cat:"Cost of Labor",amount:1207.50},
-  {date:"2026-02-09",vendor:"Venmo Payment (materials)",desc:"Venmo payment",cat:"Supplies & Materials",amount:80.00},
-  {date:"2025-12-30",vendor:"View Rail",desc:"Stair supplies",cat:"Supplies & Materials",amount:3947.28},
-  {date:"2026-02-05",vendor:"View Rail",desc:"Stair supplies",cat:"Supplies & Materials",amount:10.56},
-  {date:"2025-11-24",vendor:"Wallace Pulley",desc:"Venmo labor",cat:"Cost of Labor",amount:707.67},
-  {date:"2025-12-08",vendor:"Wallace Pulley",desc:"7.25 hrs x $35",cat:"Cost of Labor",amount:253.75},
-  {date:"2025-12-15",vendor:"Wallace Pulley",desc:"Venmo labor",cat:"Cost of Labor",amount:192.50},
-  {date:"2025-12-15",vendor:"Wallace Pulley",desc:"Supplies",cat:"Supplies & Materials",amount:9.99},
-  {date:"2025-12-22",vendor:"Wallace Pulley",desc:"5.5 hrs x $35",cat:"Cost of Labor",amount:192.50},
-  {date:"2025-12-24",vendor:"Wallace Pulley",desc:"Venmo labor",cat:"Cost of Labor",amount:372.00},
-  {date:"2026-01-20",vendor:"Wallace Pulley",desc:"22.5 hours",cat:"Cost of Labor",amount:787.50},
-  {date:"2026-02-03",vendor:"Wallace Pulley",desc:"Supplies",cat:"Supplies & Materials",amount:80.00},
-  {date:"2026-02-17",vendor:"Wallace Pulley",desc:"26.5 hrs",cat:"Cost of Labor",amount:927.50},
-  {date:"2025-12-09",vendor:"WCC Portable Restrooms",desc:"Porta potty rental",cat:"Porta Potties",amount:390.40},
-  {date:"2026-01-01",vendor:"WCC Portable Restrooms",desc:"Porta potty rental",cat:"Porta Potties",amount:163.50},
-  {date:"2026-02-01",vendor:"WCC Portable Restrooms",desc:"Porta potty rental",cat:"Porta Potties",amount:163.50}
-];
+// REMOVED: hardcoded fallback arrays — if fetch fails, show explicit error
+// (keeping this comment so future-me knows it was intentional)
 
 async function loadTransactionsFromSheet() {
   const urls = [
@@ -1270,34 +1102,11 @@ async function loadTransactionsFromSheet() {
       }
     } catch(e) { console.warn('TXN fetch failed:', e); }
   }
-  // Fallback to hardcoded data
-  EXPENSE_TRANSACTIONS = EXPENSE_TRANSACTIONS_FALLBACK;
-  INCOME_TRANSACTIONS = INCOME_TRANSACTIONS_FALLBACK;
-  console.log('Using fallback transaction data');
+  // No fallback — show clear error
+  console.error('Failed to load transactions from Google Sheets');
+  const wrapper = document.getElementById('txn-table-wrapper');
+  if (wrapper) wrapper.innerHTML = '<div style="color:#EF4444;padding:20px;text-align:center;font-size:14px;">⚠️ Failed to load transactions from Google Sheets. Check your connection and reload.</div>';
 }
-
-let INCOME_TRANSACTIONS = [];
-const INCOME_TRANSACTIONS_FALLBACK = [
-  {date:"2025-04-14",num:"1023",desc:"60% upfront payment — Design Services",cat:"Design Services",amount:5100.00},
-  {date:"2025-08-27",num:"1081",desc:"40% Design Services",cat:"Design Services",amount:3400.00},
-  {date:"2025-09-15",num:"1085",desc:"City of Bend Building Permit",cat:"Permit",amount:1286.74},
-  {date:"2025-11-03",num:"1108",desc:"Project Start (25% of Project total)",cat:"Phase Payment",amount:59297.00},
-  {date:"2025-11-19",num:"1115",desc:"CO: Skylights Added (4 x 2ft each) x 3",cat:"Change Order",amount:4500.00},
-  {date:"2025-11-24",num:"1118",desc:"CO #2: Fixed window added",cat:"Change Order",amount:1350.00},
-  {date:"2025-12-03",num:"1123",desc:"PHASE 2 Project Payment",cat:"Phase Payment",amount:59297.00},
-  {date:"2025-12-05",num:"JE-5",desc:"Unearned Revenue adjustment (Sara Wilson)",cat:"Journal Entry",amount:-59297.00},
-  {date:"2025-12-19",num:"1126",desc:"CO #3: Railing — hallway + deck",cat:"Change Order",amount:2080.00},
-  {date:"2025-12-19",num:"1127",desc:"CO #4: Hot Tub/Sauna Wiring & Plug",cat:"Change Order",amount:1500.00},
-  {date:"2025-12-19",num:"JE-11",desc:"Recognizing Income for Dec",cat:"Journal Entry",amount:59297.00},
-  {date:"2026-01-02",num:"1131",desc:"CO #5: Adding Outlet to Garage",cat:"Change Order",amount:175.00},
-  {date:"2026-01-03",num:"1132",desc:"Phase 3 Payment",cat:"Phase Payment",amount:59297.00},
-  {date:"2026-01-19",num:"1136",desc:"CO #6: Door slab prep & install",cat:"Change Order",amount:2600.00},
-  {date:"2026-01-26",num:"1138",desc:"Interior Painting",cat:"Phase Payment",amount:3300.00},
-  {date:"2026-02-03",num:"1142",desc:"PHASE 4 Project Payment",cat:"Phase Payment",amount:35578.00},
-  {date:"2026-02-20",num:"1146",desc:"Final Payment",cat:"Phase Payment",amount:23718.80},
-  {date:"2026-02-20",num:"1146",desc:"CO: Exterior outlet on deck",cat:"Change Order",amount:200.00},
-  {date:"2026-02-20",num:"1146",desc:"CO: Stair skirt & railing trim",cat:"Change Order",amount:150.00}
-];
 
 let currentTxnView = 'expenses';
 
@@ -1401,7 +1210,7 @@ function renderTransactions() {
 
   let rows = filtered.map(t => {
     const dateStr = new Date(t.date + 'T00:00:00').toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
-    const amtClass = t.amount < 0 ? 'green' : (isIncome ? 'green' : '');
+    const amtClass = t.amount < 0 ? 'green' : '';
     return `<tr>
       <td>${dateStr}</td>
       ${!isIncome ? `<td style="text-align:left">${t.vendor}</td>` : ''}
