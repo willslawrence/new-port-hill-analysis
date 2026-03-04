@@ -484,9 +484,10 @@ tbody tr.totals-row {
   .txn-controls { flex-direction: column; gap: 8px; }
   .txn-controls select, .txn-controls input { width: 100%; }
   .txn-summary-grid { grid-template-columns: repeat(2, 1fr); }
-  .vendor-bar-row { flex-direction: column; align-items: stretch; gap: 4px; margin-bottom: 10px; }
-  .vendor-bar-name { width: 100%; text-align: left; font-size: 12px; font-weight: 600; color: #E2E8F0; }
-  .vendor-bar-fill { height: 24px; }
+  .vendor-bar-row { flex-direction: column; align-items: stretch; gap: 2px; margin-bottom: 14px; }
+  .vendor-bar-name { width: 100%; text-align: left; font-size: 13px; font-weight: 600; color: #E2E8F0; }
+  .vendor-bar-fill { height: 28px; min-width: 40px; }
+  .vendor-bar-fill .vb-label { font-size: 12px; }
 }
 
 /* Transactions tab */
@@ -1194,7 +1195,7 @@ function renderTransactions() {
     const maxVendor = Math.max(...sorted.map(([, v]) => Math.abs(v)));
 
     barsEl.innerHTML = sorted.map(([name, total]) => {
-      const w = (Math.abs(total) / maxVendor * 100).toFixed(1);
+      const w = Math.max(8, (Math.abs(total) / maxVendor * 100)).toFixed(1);
       const color = total < 0 ? 'background:linear-gradient(90deg,#10B981,#34D399)' : '';
       return `<div class="vendor-bar-row">
         <div class="vendor-bar-name" title="${name}">${name}</div>
