@@ -183,9 +183,10 @@ body {
 }
 .chart-bar .bar-label.outside {
   position: absolute;
-  right: -6px;
+  right: -8px;
   transform: translateX(100%);
   color: #94A3B8;
+  font-size: 11px;
 }
 .chart-bar.est { background: linear-gradient(90deg, #3B82F6, #60A5FA); }
 .chart-bar.actual { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
@@ -866,8 +867,8 @@ function renderChart() {
       <div class="chart-bar-group">
         <div class="chart-label" title="${c.name}">${c.name}</div>
         <div class="chart-bars">
-          <div class="chart-bar est" style="width:${estW}%"><span class="bar-label">${estLabel}</span></div>
-          <div class="chart-bar ${isPending ? 'pending' : 'actual'}" style="width:${Math.max(pendingW, 15)}%"><span class="bar-label${isPending && missingMsg.length > 10 ? ' outside' : ''}">${actLabel}</span></div>
+          <div class="chart-bar est" style="width:${estW}%"><span class="bar-label outside">${estLabel}</span></div>
+          <div class="chart-bar ${isPending ? 'pending' : 'actual'}" style="width:${Math.max(pendingW, 15)}%"><span class="bar-label outside">${actLabel}</span></div>
         </div>
         <div class="chart-amount mono">${isPending ? '' : fmt(c.actual)}</div>
       </div>`;
