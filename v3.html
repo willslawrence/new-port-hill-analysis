@@ -421,7 +421,8 @@ tbody tr.totals-row {
   <div class="header-left">
     <div class="header-label">Financial Review</div>
     <div class="header-title">New Port Hill Addition</div>
-    <div class="header-sub">GQS Budget Analysis — Project In Progress <span class="finalized-count">17 of 25 categories finalized</span></div>
+    <div class="header-sub">GQS Budget Analysis — Project In Progress <span class="finalized-count" id="finalized-badge">Loading...</span></div>
+    <div id="last-synced" style="font-size:11px;color:#4B5563;margin-top:4px;"></div>
   </div>
   <button class="download-btn" onclick="downloadExcel()">📥 Export Excel</button>
 </div>
@@ -511,45 +512,115 @@ tbody tr.totals-row {
 </div>
 
 <script>
-// ============ DATA ============
-const categories = [
-  { name: "Design Services", est: 8500, bid: 4050, actual: 4050 },
-  { name: "Building Permits", est: 1286.74, bid: 1501.44, actual: 1501.44 },
-  { name: "Project Overhead", est: 5500, bid: null, actual: 7273.10 },
-  { name: "Demo/Tearoff", est: 7000, bid: 3767.50, actual: 3767.50 },
-  { name: "Protection", est: 1000, bid: null, actual: null },
-  { name: "Foundation", est: 4500, bid: 1648, actual: 1648 },
-  { name: "Framing Labor", est: 19975, bid: 9693, actual: 10439 },
-  { name: "Framing Materials & Trusses", est: 19975, bid: 18325.20, actual: null },
-  { name: "Deck & Railing", est: 7500, bid: null, actual: 5097.13 },
-  { name: "Roofing", est: 8500, bid: 7500, actual: 9100 },
-  { name: "Gutters", est: 2000, bid: 1475, actual: 1138 },
-  { name: "Siding", est: 17500, bid: 13519.75, actual: null },
-  { name: "Windows & Skylight", est: 8000, bid: null, actual: null },
-  { name: "Electrical", est: 11300, bid: 7820, actual: 7945 },
-  { name: "Plumbing", est: 20000, bid: null, actual: 23525 },
-  { name: "Insulation", est: 6500, bid: 5700, actual: 5700 },
-  { name: "HVAC", est: 13500, bid: 12719, actual: 12719 },
-  { name: "Drywall & Texture", est: 11000, bid: 10100, actual: 10100 },
-  { name: "Exterior Paint", est: 4500, bid: 5500, actual: 2500 },
-  { name: "Flooring", est: 3200, bid: null, actual: null },
-  { name: "Shower Glass", est: 1800, bid: 995, actual: 995 },
-  { name: "3-Panel Sliding Door", est: 14000, bid: 6605.11, actual: 6605.11 },
-  { name: "Interior Doors (2)", est: 500, bid: null, actual: null },
-  { name: "Overhead & Profit", est: 46938, bid: null, actual: null },
-  { name: "Payment Schedule Diff", est: 2499.80, bid: null, actual: null },
-];
+// ============ DATA (loaded from Google Sheets) ============
+let categories = [];
+let SUMMARY = {};
+let finalized = 0;
+let totalCats = 0;
 
-const SUMMARY = {
-  contractValue: 246974.54,
-  totalBids: 105367.56,
-  totalActual: 108551.84,
-  projectedProfit: 138422.70,
-  projectedMargin: 56.0
-};
+const SHEET_ID = '1bFV3udD51G8VLs0ETQMAD0Dc71QRjfkrDmXQwZ36ZNI';
+const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=0`;
+const SHEET_SQFT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1818834300`;
+const SHEET_OVERHEAD_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=736517554`;
+const SHEET_XLSX_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
 
-const finalized = categories.filter(c => c.actual !== null).length;
-const totalCats = categories.length;
+// Parse CSV text into array of arrays, handling quoted fields
+function parseCSV(text) {
+  const rows = [];
+  let current = '';
+  let inQuotes = false;
+  let row = [];
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"' && text[i + 1] === '"') {
+        current += '"'; i++;
+      } else if (ch === '"') {
+        inQuotes = false;
+      } else {
+        current += ch;
+      }
+    } else {
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ',') {
+        row.push(current.trim()); current = '';
+      } else if (ch === '\n' || (ch === '\r' && text[i + 1] === '\n')) {
+        row.push(current.trim()); current = '';
+        rows.push(row); row = [];
+        if (ch === '\r') i++;
+      } else {
+        current += ch;
+      }
+    }
+  }
+  if (current || row.length) { row.push(current.trim()); rows.push(row); }
+  return rows;
+}
+
+// Parse currency string like "$246,974.54" → 246974.54. Empty/non-numeric → null.
+function parseCurrency(val) {
+  if (!val || val.trim() === '' || val.trim() === '—' || val.trim() === '-') return null;
+  const cleaned = val.replace(/[$,]/g, '').trim();
+  // Handle percentage like "56.00%"
+  if (cleaned.endsWith('%')) return parseFloat(cleaned);
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? null : num;
+}
+
+async function loadFromSheet() {
+  const urls = [
+    SHEET_CSV_URL,
+    'https://corsproxy.io/?' + encodeURIComponent(SHEET_CSV_URL)
+  ];
+
+  let csvText = null;
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url);
+      if (resp.ok) { csvText = await resp.text(); break; }
+    } catch (e) { /* try next */ }
+  }
+
+  if (!csvText) throw new Error('Failed to fetch spreadsheet data');
+
+  const rows = parseCSV(csvText);
+
+  // Build SUMMARY from rows 3-7 (0-indexed: 2-6)
+  const contractValue = parseCurrency((rows[2] || [])[1]) || 0;
+  const totalEstimated = parseCurrency((rows[3] || [])[1]) || 0;
+  const totalActualCost = parseCurrency((rows[4] || [])[1]) || 0;
+  const projectedProfit = parseCurrency((rows[5] || [])[1]) || 0;
+  const projectedMargin = parseCurrency((rows[6] || [])[1]) || 0;
+
+  SUMMARY = {
+    contractValue,
+    totalBids: 0, // will compute from categories
+    totalActual: totalActualCost,
+    projectedProfit,
+    projectedMargin
+  };
+
+  // Parse category rows (rows 10-35, 0-indexed 9-34)
+  // Row 9 (0-indexed 8) is header row
+  categories = [];
+  let totalBidsCalc = 0;
+  for (let i = 9; i <= Math.min(34, rows.length - 1); i++) {
+    const r = rows[i];
+    if (!r || !r[0] || r[0].trim() === '' || r[0].trim().toUpperCase() === 'ADD-ON' || r[0].trim().toUpperCase() === 'TOTAL') continue;
+    const name = r[0].trim();
+    const est = parseCurrency(r[1]);
+    const bid = parseCurrency(r[2]);
+    const actual = parseCurrency(r[3]);
+    if (est === null && bid === null && actual === null) continue; // skip fully empty rows
+    categories.push({ name, est: est || 0, bid, actual });
+    if (bid !== null) totalBidsCalc += bid;
+  }
+  SUMMARY.totalBids = totalBidsCalc;
+
+  finalized = categories.filter(c => c.actual !== null).length;
+  totalCats = categories.length;
+}
 
 // ============ HELPERS ============
 function fmt(n) {
@@ -673,14 +744,14 @@ function renderCostTable() {
 }
 
 // ============ SQFT ============
-const sqftTrades = [
-  { name: 'Plumbing', actual: 23525 },
-  { name: 'Electrical', actual: 7945 },
-  { name: 'HVAC', actual: 12719 },
-  { name: 'Roofing', actual: 9100 },
-];
-// Siding doesn't have actual yet, so exclude
+function getSqftTrades() {
+  const tradeNames = ['Plumbing', 'Electrical', 'HVAC', 'Roofing'];
+  return categories
+    .filter(c => tradeNames.includes(c.name) && c.actual !== null)
+    .map(c => ({ name: c.name, actual: c.actual }));
+}
 function updateSqft() {
+  const sqftTrades = getSqftTrades();
   const input = document.getElementById('sqft-input');
   const sqft = parseFloat(input.value);
   const container = document.getElementById('sqft-cards');
@@ -755,94 +826,66 @@ function renderOverhead() {
 
 // ============ EXCEL DOWNLOAD ============
 function downloadExcel() {
-  const wb = XLSX.utils.book_new();
-
-  // Build data array
-  const data = [];
-  // Summary section
-  data.push(['New Port Hill Addition — Financial Summary']);
-  data.push([]);
-  data.push(['Original Contract Value', SUMMARY.contractValue]);
-  data.push(['Total Actual Cost (to date)', SUMMARY.totalActual]);
-  data.push(['Projected Profit', SUMMARY.projectedProfit]);
-  data.push(['Projected Margin', SUMMARY.projectedMargin / 100]);
-  data.push(['Categories Finalized', finalized + ' of ' + totalCats]);
-  data.push([]);
-
-  // Headers
-  data.push(['Category', 'Estimated', 'Bid', 'Actual', 'Variance ($)', 'Variance (%)']);
-
-  // Data rows
-  let totalEst = 0, totalBid = 0, totalAct = 0;
-  categories.forEach(c => {
-    totalEst += c.est;
-    if (c.bid !== null) totalBid += c.bid;
-    if (c.actual !== null) totalAct += c.actual;
-    const variance = c.actual !== null ? c.est - c.actual : null;
-    const variancePct = variance !== null ? variance / c.est : null;
-    data.push([
-      c.name,
-      c.est,
-      c.bid,
-      c.actual,
-      variance,
-      variancePct
-    ]);
-  });
-
-  // Totals
-  data.push(['TOTALS', totalEst, totalBid, totalAct, totalEst - totalAct, (totalEst - totalAct) / totalEst]);
-
-  const ws = XLSX.utils.aoa_to_sheet(data);
-
-  // Column widths
-  ws['!cols'] = [
-    { wch: 28 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }
-  ];
-
-  // Freeze first row of the table (row 9, 0-indexed)
-  ws['!freeze'] = { xSplit: 0, ySplit: 9 };
-
-  // Number formats for currency columns
-  const range = XLSX.utils.decode_range(ws['!ref']);
-  for (let R = 2; R <= 5; R++) {
-    for (let C = 1; C <= 1; C++) {
-      const addr = XLSX.utils.encode_cell({ r: R, c: C });
-      if (ws[addr]) {
-        if (R === 5) {
-          ws[addr].z = '0.0%';
-        } else {
-          ws[addr].z = '$#,##0.00';
-        }
-      }
-    }
-  }
-
-  // Format data rows
-  for (let R = 9; R <= range.e.r; R++) {
-    for (let C = 1; C <= 4; C++) {
-      const addr = XLSX.utils.encode_cell({ r: R, c: C });
-      if (ws[addr] && ws[addr].v !== null && typeof ws[addr].v === 'number') {
-        ws[addr].z = '$#,##0.00';
-      }
-    }
-    // Percentage column
-    const pctAddr = XLSX.utils.encode_cell({ r: R, c: 5 });
-    if (ws[pctAddr] && ws[pctAddr].v !== null && typeof ws[pctAddr].v === 'number') {
-      ws[pctAddr].z = '0.0%';
-    }
-  }
-
-  XLSX.utils.book_append_sheet(wb, ws, 'Financial Summary');
-  XLSX.writeFile(wb, 'NewPortHill_Financial_Summary.xlsx');
+  // Download directly from Google Sheets source (all 3 tabs, formatted)
+  window.open(SHEET_XLSX_URL, '_blank');
 }
 
 // ============ INIT ============
-renderChart();
-renderSubPerformance();
-renderCostTable();
-updateSqft();
-renderOverhead();
+function updateKPIs() {
+  // Update KPI cards with live data
+  const kpiValues = document.querySelectorAll('.kpi-value');
+  if (kpiValues.length >= 4) {
+    kpiValues[0].textContent = fmtInt(SUMMARY.contractValue);
+    kpiValues[1].textContent = fmtInt(SUMMARY.totalActual);
+    kpiValues[2].textContent = fmtInt(SUMMARY.projectedProfit);
+    kpiValues[3].textContent = SUMMARY.projectedMargin.toFixed(1) + '%';
+  }
+  // Update KPI sub-text
+  const kpiSubs = document.querySelectorAll('.kpi-sub');
+  if (kpiSubs.length >= 2) {
+    kpiSubs[1].textContent = finalized + ' of ' + totalCats + ' categories';
+  }
+  // Update finalized badge
+  const badge = document.getElementById('finalized-badge');
+  if (badge) badge.textContent = finalized + ' of ' + totalCats + ' categories finalized';
+}
+
+function showLoading(show) {
+  let overlay = document.getElementById('loading-overlay');
+  if (show && !overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'loading-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(11,15,26,0.85);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:16px;';
+    overlay.innerHTML = '<div style="font-size:24px;">📡</div><div style="color:#94A3B8;font-size:16px;">Loading from Google Sheets...</div>';
+    document.body.appendChild(overlay);
+  } else if (!show && overlay) {
+    overlay.remove();
+  }
+}
+
+async function init() {
+  showLoading(true);
+  try {
+    await loadFromSheet();
+    showLoading(false);
+    updateKPIs();
+    renderChart();
+    renderSubPerformance();
+    renderCostTable();
+    updateSqft();
+    renderOverhead();
+    // Show last synced timestamp
+    const syncEl = document.getElementById('last-synced');
+    if (syncEl) syncEl.textContent = '✅ Last synced: ' + new Date().toLocaleString();
+  } catch (err) {
+    showLoading(false);
+    console.error('Failed to load sheet data:', err);
+    document.getElementById('last-synced').textContent = '❌ Failed to load from Google Sheets — showing cached data';
+    // Fall back: leave empty data, show error
+  }
+}
+
+init();
 </script>
 </body>
 </html>
