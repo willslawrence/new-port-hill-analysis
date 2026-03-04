@@ -697,8 +697,8 @@ tbody tr.totals-row {
 
   <div class="txn-controls">
     <div class="txn-toggle">
-      <button class="txn-toggle-btn active" onclick="switchTxnView('expenses')">Expenses</button>
-      <button class="txn-toggle-btn" onclick="switchTxnView('income')">Income</button>
+      <button class="txn-toggle-btn active" onclick="switchTxnView('expenses', this)">Expenses</button>
+      <button class="txn-toggle-btn" onclick="switchTxnView('income', this)">Income</button>
     </div>
     <select id="txn-vendor-filter" onchange="renderTransactions()">
       <option value="all">All Vendors</option>
@@ -1110,10 +1110,10 @@ async function loadTransactionsFromSheet() {
 
 let currentTxnView = 'expenses';
 
-function switchTxnView(view) {
+function switchTxnView(view, btn) {
   currentTxnView = view;
   document.querySelectorAll('.txn-toggle-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  if (btn) btn.classList.add('active');
   populateTxnFilters();
   renderTransactions();
 }
@@ -1210,14 +1210,16 @@ function renderTransactions() {
 
   let rows = filtered.map(t => {
     const dateStr = new Date(t.date + 'T00:00:00').toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
-    const amtClass = t.amount < 0 ? 'green' : '';
+    // Income: green for positive, red for negative (journal entries). Expenses: white, negative shown with parentheses (accounting style)
+    const amtClass = isIncome ? (t.amount < 0 ? 'red' : 'green') : '';
+    const amtStr = t.amount < 0 ? `(${fmt(Math.abs(t.amount))})` : fmt(Math.abs(t.amount));
     return `<tr>
       <td>${dateStr}</td>
       ${!isIncome ? `<td style="text-align:left">${t.vendor}</td>` : ''}
       <td style="text-align:left">${t.desc}</td>
       <td style="text-align:left"><span style="font-size:11px;color:#94A3B8">${t.cat}</span></td>
       ${isIncome && t.num ? `<td class="mono">${t.num}</td>` : ''}
-      <td class="mono ${amtClass}">${t.amount < 0 ? '-' : ''}${fmt(Math.abs(t.amount))}</td>
+      <td class="mono ${amtClass}">${amtStr}</td>
     </tr>`;
   }).join('');
 
