@@ -730,6 +730,7 @@ const SHEET_ID = '1bFV3udD51G8VLs0ETQMAD0Dc71QRjfkrDmXQwZ36ZNI';
 const SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=0`;
 const SHEET_SQFT_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=1818834300`;
 const SHEET_OVERHEAD_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=736517554`;
+const SHEET_TXN_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=481449048`;
 const SHEET_XLSX_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=xlsx`;
 
 // Parse CSV text into array of arrays, handling quoted fields
@@ -1048,7 +1049,10 @@ function downloadExcel() {
 }
 
 // ============ TRANSACTIONS DATA ============
-const EXPENSE_TRANSACTIONS = [
+// Expenses loaded dynamically from Google Sheets; income hardcoded (separate source PDF)
+let EXPENSE_TRANSACTIONS = [];
+
+const EXPENSE_TRANSACTIONS_FALLBACK = [
   {date:"2025-12-03",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:129.99},
   {date:"2025-12-18",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:59.88},
   {date:"2026-01-29",vendor:"Ace Hardware",desc:"ACE HARDWARE & PAINT",cat:"Supplies & Materials",amount:23.97},
@@ -1220,6 +1224,45 @@ const EXPENSE_TRANSACTIONS = [
   {date:"2026-02-01",vendor:"WCC Portable Restrooms",desc:"Porta potty rental",cat:"Porta Potties",amount:163.50}
 ];
 
+async function loadTransactionsFromSheet() {
+  const urls = [
+    SHEET_TXN_URL,
+    'https://corsproxy.io/?' + encodeURIComponent(SHEET_TXN_URL)
+  ];
+  for (const url of urls) {
+    try {
+      const resp = await fetch(url);
+      if (!resp.ok) continue;
+      const text = await resp.text();
+      const rows = parseCSV(text);
+      if (rows.length < 2) continue;
+      // Header: Date, Vendor, Description, Category, Amount
+      const data = [];
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i];
+        if (!r[0] || r.length < 5) continue;
+        const amount = parseFloat(String(r[4]).replace(/[$,]/g, ''));
+        if (isNaN(amount)) continue;
+        data.push({
+          date: String(r[0]).trim(),
+          vendor: String(r[1]).trim(),
+          desc: String(r[2]).trim(),
+          cat: String(r[3]).trim(),
+          amount: amount
+        });
+      }
+      if (data.length > 0) {
+        EXPENSE_TRANSACTIONS = data;
+        console.log(`Loaded ${data.length} transactions from Google Sheets`);
+        return;
+      }
+    } catch(e) { console.warn('TXN fetch failed:', e); }
+  }
+  // Fallback to hardcoded data
+  EXPENSE_TRANSACTIONS = EXPENSE_TRANSACTIONS_FALLBACK;
+  console.log('Using fallback transaction data');
+}
+
 const INCOME_TRANSACTIONS = [
   {date:"2025-04-14",num:"1023",desc:"60% upfront payment — Design Services",cat:"Design Services",amount:5100.00},
   {date:"2025-08-27",num:"1081",desc:"40% Design Services",cat:"Design Services",amount:3400.00},
@@ -1376,7 +1419,8 @@ function renderTransactions() {
   </table>`;
 }
 
-function initTransactions() {
+async function initTransactions() {
+  await loadTransactionsFromSheet();
   populateTxnFilters();
   renderTransactions();
 }
