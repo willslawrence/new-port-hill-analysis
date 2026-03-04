@@ -484,7 +484,9 @@ tbody tr.totals-row {
   .txn-controls { flex-direction: column; gap: 8px; }
   .txn-controls select, .txn-controls input { width: 100%; }
   .txn-summary-grid { grid-template-columns: repeat(2, 1fr); }
-  .vendor-bar-name { width: 120px; font-size: 11px; }
+  .vendor-bar-row { flex-direction: column; align-items: stretch; gap: 4px; margin-bottom: 10px; }
+  .vendor-bar-name { width: 100%; text-align: left; font-size: 12px; font-weight: 600; color: #E2E8F0; }
+  .vendor-bar-fill { height: 24px; }
 }
 
 /* Transactions tab */
@@ -564,13 +566,19 @@ tbody tr.totals-row {
   background: linear-gradient(90deg, #8B5CF6, #A78BFA);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding-right: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: rgba(255,255,255,0.9);
+  position: relative;
   min-width: 2px;
   transition: width 0.4s ease;
+}
+.vendor-bar-fill .vb-label {
+  position: absolute;
+  right: -8px;
+  transform: translateX(100%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #94A3B8;
+  white-space: nowrap;
+  pointer-events: none;
 }
 .vendor-bar-amount {
   font-family: 'JetBrains Mono', monospace;
@@ -1323,7 +1331,7 @@ function renderTransactions() {
       const color = total < 0 ? 'background:linear-gradient(90deg,#10B981,#34D399)' : '';
       return `<div class="vendor-bar-row">
         <div class="vendor-bar-name" title="${name}">${name}</div>
-        <div style="flex:1"><div class="vendor-bar-fill" style="width:${w}%;${color}">${fmt(total)}</div></div>
+        <div style="flex:1;position:relative"><div class="vendor-bar-fill" style="width:${w}%;${color}"><span class="vb-label">${fmt(total)}</span></div></div>
       </div>`;
     }).join('');
   } else {
